@@ -34,5 +34,7 @@ public:
 
     uint64_t get_remaining_quantums(){ return this->remaining_quantums; }
     void compute(uint64_t quantum){ this->remaining_quantums -= quantum; }
+    uint64_t get_submit_time(){ return this->submit_time_seconds; }
+    static bool compare_jobs_order(job * a, job * b){ return (a->submit_time_seconds < b->submit_time_seconds); }
 
 };

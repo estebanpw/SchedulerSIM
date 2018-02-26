@@ -17,10 +17,42 @@ cluster::cluster(uint64_t quantum, FILE * f_input_jobs){
             this->input_jobs.push_back(j);
         }
     }
+    std::sort(this->input_jobs.begin(), this->input_jobs.end(), job::compare_jobs_order);
+
+
+    /*
+    for(std::vector<job *>::iterator it = this->input_jobs.begin() ; it != this->input_jobs.end(); ++it){
+        printf("%"PRIu64"\n", (*it)->get_submit_time());
+    }
+    */
+
 }
 
 void cluster::compute(){
     // Perform actions
+
+    // Check if there is a job waiting
+
+    job * current_job = NULL;
+    uint64_t i=0;
+
+    if(this->input_jobs.size() > 0){
+        current_job = this->input_jobs.front();
+        // If a job enters the system, submit it to the waiting queue
+        while(current_job != NULL && current_job->get_submit_time() <= this->syscl->get_time()){
+
+            // Remove this job from input first
+            this->input_jobs.erase(this->input_jobs.begin()+i);
+            ++i;
+
+            // Compute its priority and insert to job queue
+            
+            // Current mode is just FIFO
+            this->jobs_queue.push_back(current_job);
+        }
+    }
+
+    // Compute quantums
 
     for(std::vector<node *>::iterator it = this->nodes.begin() ; it != this->nodes.end(); ++it){
         (*it)->compute(this->quantum, this->syscl->get_time());

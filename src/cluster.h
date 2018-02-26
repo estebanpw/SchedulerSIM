@@ -9,11 +9,13 @@
 #include <queue>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 class cluster
 {
 private:
     std::vector<job *> input_jobs;
+    std::vector<job *> jobs_queue;
     std::vector<node *> nodes;
     uint64_t quantum;
     sysclock * syscl;

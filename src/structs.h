@@ -11,10 +11,10 @@
 
 #define INIT_YEAR 2014
 #define INIT_MONTH 2
-#define INIT_DAY 13
+#define INIT_DAY 1
 #define INIT_HOUR 8
-#define INIT_MINUTE 25
-#define INIT_SECOND 10
+#define INIT_MINUTE 24
+#define INIT_SECOND 16
 
 typedef struct machine_conf{
     uint64_t id;
