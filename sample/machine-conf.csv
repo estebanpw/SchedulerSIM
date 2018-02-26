@@ -1,0 +1,6 @@
+IDmachine	NodeName	NCores	Mem	TPenaltyOn	TPenaltyOff	Cost(s)
+0	Lenny	32	128	30	10	5
+1	Carl	16	64	10	5	1
+2	Serg	128	1024	45	15	10
+3	Jam	20	32	8	5	2
+4	Vlad	8	16	1	1	1
