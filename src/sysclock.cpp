@@ -8,5 +8,6 @@ sysclock::sysclock()
 
 void sysclock::next_clock(){
     this->t++;
-    if(this->t % QUANTUMS_PER_SEC) this->time++;
+    //if(this->t % 10000 == 0) printf("gone clocking %" PRIu64 " = %" PRIu64" (s)\n", this->t, this->time);
+    if(this->t % QUANTUMS_PER_SEC == 0 && this->t > 0) this->time++;
 }

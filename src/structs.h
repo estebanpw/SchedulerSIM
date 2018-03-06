@@ -5,16 +5,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define QUANTUMS_PER_SEC 100
+#define QUANTUMS_PER_SEC 5
+#define QUANTUMS_IN_DAY 60*60*24*QUANTUMS_PER_SEC
 #define DATA_LEN 100
 #define MACHINE_CONF_FIELDS 7
 
 #define INIT_YEAR 2014
 #define INIT_MONTH 2
-#define INIT_DAY 1
+#define INIT_DAY 9
 #define INIT_HOUR 8
 #define INIT_MINUTE 24
 #define INIT_SECOND 16
+
+enum LOGTYPE { NODE_FOUND, NODE_ON, NODE_OFF, JOB_ENTER, JOB_START, JOB_FINISH, SYS_USE };
+
+extern bool MULTITHREADING;
 
 typedef struct machine_conf{
     uint64_t id;
@@ -46,3 +51,8 @@ typedef struct picasso_row{
     int         exit_code;
 
 } Picasso_row;
+
+typedef struct jobs_completition{
+    uint64_t n_cores_launched;
+    uint64_t n_cores_finished;
+} Jobs_completition;

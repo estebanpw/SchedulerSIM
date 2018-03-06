@@ -9,4 +9,6 @@
 
 uint64_t normalize_date(const char * d1);
 
+uint64_t walltime_to_seconds(char * wtime);
+
 int picasso_read_row(FILE * f_in, Picasso_row * pr);

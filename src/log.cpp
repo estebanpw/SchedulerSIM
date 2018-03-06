@@ -11,6 +11,9 @@ void log::record(int count, ...){
     va_start(ap, count);
 
     switch(va_arg(ap, int)){
+        case NODE_FOUND: {
+            fprintf(this->out_log, "[NODE DETECTED] (t=%" PRIu64 ") I can see ",  va_arg(ap, uint64_t));
+        }
         case NODE_ON: {
             fprintf(this->out_log, "[NODE ON] (t=%" PRIu64 ") ",  va_arg(ap, uint64_t));
         }
@@ -37,10 +40,11 @@ void log::record(int count, ...){
         break;
     }
     
-    for(int i=2; i<count; i++){
+    for(int i=1; i<count; i++){
         fprintf(this->out_log, "%s", va_arg(ap, char *));
     }
     va_end(ap);
     fprintf(this->out_log, "\n");
+    fflush(stdout);
 }
 
