@@ -49,33 +49,52 @@ void scheduler_FIFO::queue_job(job * j){
     this->jobs_queue.push_back(j);
 }
 
+
+// MISTAKE !! This includes already a backfill procedure !!
+
+
 void scheduler_FIFO::deploy_jobs(uint64_t t){
     // Sort nodes according to CPU load
     std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), node::compare_two_node_loads);
-    std::vector<uint64_t> remove_jobs;
-    uint64_t kill_id = 0;
     
-    for(std::vector<job *>::iterator jobit = this->jobs_queue.begin() ; jobit != this->jobs_queue.end(); ++jobit){
+    if(BACKFILL == true){
+        std::vector<uint64_t> remove_jobs;
+        uint64_t kill_id = 0;
+        
+        for(std::vector<job *>::iterator jobit = this->jobs_queue.begin() ; jobit != this->jobs_queue.end(); ++jobit){
+            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+                if(job_fits_in_node(*jobit, *it, t)){
+                    (*it)->insert_job(*jobit);
+                    remove_jobs.push_back(kill_id);
+                    //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
+                    LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
+                    break;
+                }else{
+                    //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
+                }
+            }
+            ++kill_id;
+        }
+        uint64_t amount_removed = 0;
+        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
+            this->jobs_queue.erase(this->jobs_queue.begin()+(*rem_job) - amount_removed);
+            amount_removed++;
+        }   
+    }else{
+        // No backfill
+                
+        job * jobit = this->jobs_queue.front();
         for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-            if(job_fits_in_node(*jobit, *it, t)){
-                (*it)->insert_job(*jobit);
-                remove_jobs.push_back(kill_id);
-                //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
-                LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
+            if(job_fits_in_node(jobit, *it, t)){
+                (*it)->insert_job(jobit);
+                this->jobs_queue.erase(this->jobs_queue.begin());
+                LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
                 break;
-            }else{
-                //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
             }
         }
-        ++kill_id;
     }
-    uint64_t amount_removed = 0;
-    for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
-        this->jobs_queue.erase(this->jobs_queue.begin()+(*rem_job) - amount_removed);
-        amount_removed++;
-    }
-    
-    
 }
+
+
 
 // ****** End Scheduler FIFO ****************************************************************************

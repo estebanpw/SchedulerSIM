@@ -52,15 +52,6 @@ int cluster::compute(){
         // If a job enters the system, submit it to the waiting queue
         while(current_job != NULL && current_job->get_submit_time() <= this->syscl->get_time() && this->input_jobs.size() > 0){
 
-            
-            
-            //printf("input job list now %" PRIu64 "\n", this->input_jobs.size());
-            
-            /*
-            for(std::vector<job *>::iterator it = this->input_jobs.begin() ; it != this->input_jobs.end(); ++it){
-                printf("%" PRIu64 "\n", (*it)->job_internal_identifier);
-            }
-            */
 
             // Schedule it insert to job queue
             //this->broadcast(2, "job enter ", current_job->to_string().c_str());
@@ -185,7 +176,7 @@ std::string cluster::print_cluster_usage(){
     uint64_t cost_per_sec = 0;
     for(std::vector<node *>::iterator it = this->nodes.begin() ; it != this->nodes.end(); ++it){
         if((*it)->get_state()){
-            core_load += (*it)->get_node_CPU_load();
+            core_load += (*it)->efficient_get_node_CPU_load();
             mem_load += (*it)->get_node_MEM_load();
         }
         if((*it)->get_state() || (*it)->is_system_busy() > 0){

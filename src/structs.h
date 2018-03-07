@@ -9,6 +9,8 @@
 #define QUANTUMS_IN_DAY 60*60*24*QUANTUMS_PER_SEC
 #define LOGIN_NODE_INTERVAL 5
 
+#define MAX_THREADS_PER_CPU 6
+
 #define DATA_LEN 100
 #define MACHINE_CONF_FIELDS 7
 
@@ -22,7 +24,9 @@
 enum LOGTYPE { NODE_FOUND, NODE_ON, NODE_OFF, JOB_ENTER, JOB_START, JOB_FINISH, SYS_USE, SHUTDOWN };
 
 extern bool MULTITHREADING;
+extern bool BACKFILL;
 extern uint64_t n_threads;
+
 
 
 typedef struct machine_conf{

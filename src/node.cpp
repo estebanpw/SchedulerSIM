@@ -22,6 +22,7 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
     this->node_state = false;
 
     this->delay_clocks = 0;
+    this->efficient_t_jobs = 0;
 }
 
 std::queue<job *> * node::compute(uint64_t t){
@@ -64,6 +65,7 @@ std::queue<job *> * node::compute(uint64_t t){
                 while(data_for_threads[i].finished_jobs.size() > 0){
                     finished_jobs->push(data_for_threads[i].finished_jobs.front());
                     data_for_threads[i].finished_jobs.pop();
+                    this->efficient_t_jobs--;
                 }
             }
 
@@ -116,14 +118,10 @@ void * node::compute_pthreaded(void * a){
 uint64_t node::get_available_cores(){
     if(MULTITHREADING){
         // Not implemented yet TODO
-        return 0;
+        if(this->efficient_t_jobs < this->n_cores*MAX_THREADS_PER_CPU) return ((this->n_cores*MAX_THREADS_PER_CPU) - this->efficient_t_jobs); else return 0;
     }else{
         // 
-        uint64_t n_free_cores = 0;
-        for(std::vector<core *>::iterator it = this->cores.begin() ; it != this->cores.end(); ++it){
-            n_free_cores += ((*it)->get_core_load() == 0) ? (1) : (0) ;
-        }
-        return n_free_cores;
+        if(this->efficient_t_jobs < this->n_cores) return (this->n_cores - this->efficient_t_jobs); else return 0;
     }
 }
 
@@ -133,6 +131,11 @@ double node::get_node_CPU_load(){
             load += ((*it)->get_core_load() > 0) ? (1.0) : (0.0) ;
     }
     return 100.0 * (load / (double) this->n_cores);
+}
+
+double node::efficient_get_node_CPU_load(){
+    
+    return 100.0 * (this->efficient_t_jobs / (double) this->n_cores);
 }
 
 double node::get_node_MEM_load(){
@@ -151,6 +154,7 @@ void node::insert_job(job * j){
             this->load_in_cores.at(i)->at_core->insert_job(j);
             //printf("insert %" PRIu64 " cores used: %" PRIu64 "\n", j->job_internal_identifier, i);
             this->load_in_cores.at(i)->at_core->increase_load();
+            this->efficient_t_jobs++;
         }
     }
 

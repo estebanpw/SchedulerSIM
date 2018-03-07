@@ -8,9 +8,12 @@
 #include "structs.h"
 
 static volatile int keep_running = 1;
-bool MULTITHREADING = false;
 uint64_t n_threads = 4;
 log_recorder * LOG;
+
+bool MULTITHREADING = false;
+bool BACKFILL = false;
+
 
 void signal_handler(int dummy) {
     keep_running = 0;
@@ -38,12 +41,14 @@ void open_files(const char * m_conf, const char * workload, const char * log_out
 
 int main(int argc, char ** av){
 
-    if(argc != 5) terror("Error, use: ./schedulerSIM machine-conf.csv workload.csv out.log threads");
+    if(argc != 7) terror("Error, use: ./schedulerSIM machine-conf.csv workload.csv out.log threads backfill=TRUE/FALSE multithreading=TRUE/FALSE");
 
     FILE * f_machine_conf = NULL, * f_workload = NULL, * f_log_out = NULL;
     open_files(av[1], av[2], av[3], &f_machine_conf, &f_workload, &f_log_out);
     LOG = new log_recorder(f_log_out);
     n_threads = (uint64_t) atoi(av[4]);
+    if(strcmp(av[6], "true") == 0) BACKFILL = true;
+    if(strcmp(av[7], "true") == 0) MULTITHREADING = true;
 
     scheduler_FIFO * sch_FIFO = new scheduler_FIFO();
     cluster * system_cluster = new cluster(f_workload, sch_FIFO);

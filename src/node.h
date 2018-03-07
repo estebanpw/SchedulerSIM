@@ -36,6 +36,7 @@ private:
     uint64_t penalty_boot;
     uint64_t penalty_shutdown;
     uint64_t cost_per_second;
+    uint64_t efficient_t_jobs;
     std::vector<core *> cores;
     std::vector<jobs_per_core *> load_in_cores;
     
@@ -53,6 +54,7 @@ public:
 
     void print_node(){ std::cout << "Node " << id_node << ":" << node_name << " [" << n_cores << "CPUs " << total_memory << "GB" << "]" << std::endl; }
     double get_node_CPU_load();
+    double efficient_get_node_CPU_load();
     double get_node_MEM_load();
 
     uint64_t get_number_of_cores(){ return this->n_cores; }
@@ -65,6 +67,6 @@ public:
     void insert_job(job * j);
 
     // For descending sort (more busy nodes first)
-    static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->get_node_CPU_load() > b->at_node->get_node_CPU_load()); }
+    static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load()); }
     static void * compute_pthreaded(void * a);
 };
