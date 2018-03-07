@@ -23,23 +23,11 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
         }
     }
     std::sort(this->input_jobs.begin(), this->input_jobs.end(), job::compare_jobs_order);
-
-    /*
-    for(std::vector<job *>::iterator it = this->input_jobs.begin() ; it != this->input_jobs.end(); ++it){
-        std::cout << "job " << (*it)->to_string() << std::endl;
-    }
-    */
     
 
     this->table_of_jobs_completition = (Jobs_completition *) std::malloc(this->input_jobs.size() * sizeof(uint64_t) * 2);
     if(this->table_of_jobs_completition == NULL) terror("Could not allocate table of jobs completition");
 
-
-    /*
-    for(std::vector<job *>::iterator it = this->input_jobs.begin() ; it != this->input_jobs.end(); ++it){
-        printf("%"PRIu64"\n", (*it)->get_submit_time());
-    }
-    */
 
 }
 
@@ -50,7 +38,7 @@ cluster::~cluster(){
 int cluster::compute(){
     // Perform actions
     if(this->syscl->get_clock() % (QUANTUMS_IN_DAY) == 0 && this->syscl->get_time() > 0){
-        LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage().c_str());
+        LOG->record(4, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->print_cluster_usage().c_str());
         this->broadcast(1, "A day goes by... ");
     } 
     
@@ -77,7 +65,7 @@ int cluster::compute(){
             // Schedule it insert to job queue
             //this->broadcast(2, "job enter ", current_job->to_string().c_str());
             // Current mode is just FIFO
-            LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage().c_str());
+            LOG->record(4, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->print_cluster_usage().c_str());
             this->sch->queue_job(current_job);
             ++t_total;
             LOG->record(4, JOB_ENTER, this->syscl->get_time(), this->sch->get_queued_jobs_size(), current_job->to_string().c_str());
@@ -109,8 +97,8 @@ int cluster::compute(){
 
             if(this->add_finished_core_and_check(j)){
                 (*it)->free_memory_from_process(j->MEM_requested);
-                LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage().c_str());
-                LOG->record(3, JOB_FINISH, this->syscl->get_time(), j->to_string().c_str());
+                LOG->record(4, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->print_cluster_usage().c_str());
+                LOG->record(4, JOB_FINISH, this->syscl->get_time(), this->sch->get_queued_jobs_size(), j->to_string().c_str());
                 ++t_finished;
             }
             

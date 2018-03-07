@@ -1,11 +1,11 @@
-#include "log.h"
+#include "log-recorder.h"
 
-log::log(FILE * out){
+log_recorder::log_recorder(FILE * out){
     
     this->out_log = out;
 }
 
-void log::record(int count, ...){
+void log_recorder::record(int count, ...){
 
     va_list ap;
     va_start(ap, count);
@@ -39,11 +39,18 @@ void log::record(int count, ...){
         break;
         case JOB_FINISH: {
             fprintf(this->out_log, "[JOB FINISHED] (t=%" PRIu64 ") ",  va_arg(ap, uint64_t));
-            for(int i=2; i<count; i++) fprintf(this->out_log, "%s", va_arg(ap, char *));
+            fprintf(this->out_log, " (in-queue=%" PRIu64 ") ", va_arg(ap, uint64_t));
+            for(int i=3; i<count; i++) fprintf(this->out_log, "%s", va_arg(ap, char *));
         }
         break;
         case SYS_USE: {
             fprintf(this->out_log, "[SYS LOAD] (t=%" PRIu64 ") ",  va_arg(ap, uint64_t));
+            fprintf(this->out_log, " (in-queue=%" PRIu64 ") ", va_arg(ap, uint64_t));
+            for(int i=3; i<count; i++) fprintf(this->out_log, "%s", va_arg(ap, char *));
+        }
+        break;
+        case SHUTDOWN: {
+            fprintf(this->out_log, "[SYSTEM OFF] (t=%" PRIu64 ") ",  va_arg(ap, uint64_t));
             for(int i=2; i<count; i++) fprintf(this->out_log, "%s", va_arg(ap, char *));
         }
         break;

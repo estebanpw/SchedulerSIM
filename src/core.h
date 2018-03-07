@@ -2,7 +2,7 @@
 
 #include "structs.h"
 #include "job.h"
-#include "log.h"
+#include "log-recorder.h"
 #include <queue>
 
 class core;

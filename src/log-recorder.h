@@ -8,14 +8,15 @@
 #include <stdarg.h>
 #include <string>
 
-class log
+
+class log_recorder
 {
 private:
     FILE * out_log;
 
 public:
-    log(FILE * out);
+    log_recorder(FILE * out);
     void record(int count, ...);
 };
 
-extern log * LOG;
+extern log_recorder * LOG;

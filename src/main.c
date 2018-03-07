@@ -3,14 +3,14 @@
 #include "io-functions.h"
 #include "cluster.h"
 #include "sysclock.h"
-#include "log.h"
+#include "log-recorder.h"
 #include "common-functions.h"
 #include "structs.h"
 
 static volatile int keep_running = 1;
-log * LOG;
 bool MULTITHREADING = false;
 uint64_t n_threads = 4;
+log_recorder * LOG;
 
 void signal_handler(int dummy) {
     keep_running = 0;
@@ -38,11 +38,11 @@ void open_files(const char * m_conf, const char * workload, const char * log_out
 
 int main(int argc, char ** av){
 
-    if(argc != 5) terror("Error, please use: ./schedulerSIM machine-conf.csv workload.csv out.log threads");
+    if(argc != 5) terror("Error, use: ./schedulerSIM machine-conf.csv workload.csv out.log threads");
 
     FILE * f_machine_conf = NULL, * f_workload = NULL, * f_log_out = NULL;
     open_files(av[1], av[2], av[3], &f_machine_conf, &f_workload, &f_log_out);
-    LOG = new log(f_log_out);
+    LOG = new log_recorder(f_log_out);
     n_threads = (uint64_t) atoi(av[4]);
 
     scheduler_FIFO * sch_FIFO = new scheduler_FIFO();

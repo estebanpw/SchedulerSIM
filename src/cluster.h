@@ -5,7 +5,7 @@
 #include "sysclock.h"
 #include "common-functions.h"
 #include "io-functions.h"
-#include "log.h"
+#include "log-recorder.h"
 #include "scheduler.h"
 #include <stdarg.h>
 #include <queue>

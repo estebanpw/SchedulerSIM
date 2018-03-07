@@ -2,7 +2,7 @@
 
 #include "structs.h"
 #include "core.h"
-#include "log.h"
+#include "log-recorder.h"
 #include "common-functions.h"
 #include <pthread.h>
 #include <vector>

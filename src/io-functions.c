@@ -94,3 +94,11 @@ int picasso_read_row(FILE * f_in, Picasso_row * pr){
 
     return read;
 }
+
+std::string seconds_to_date_char(uint64_t seconds){
+    uint64_t days = seconds / (60*60*24);
+    uint64_t hours = (seconds % (60*60*24)) / (60*60);
+    uint64_t minutes = ((seconds % (60*60*24)) % (60*60)) / 60;
+    std::string s = std::to_string(days) + " days, " + std::to_string(hours) + " hours and " + std::to_string(minutes) + " minutes.";
+    return s;
+}
