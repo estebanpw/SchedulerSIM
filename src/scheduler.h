@@ -29,6 +29,7 @@ public:
     virtual double compute_priority(job * j) = 0;
     virtual bool job_fits_in_node(job * j, node * n, uint64_t t) = 0;
     void set_nodes_list(std::vector<node *> * nodes);
+    uint64_t get_queued_jobs_size(){ return this->jobs_queue.size(); }
     job * get_next_job();
     void pop_next_job();
 };

@@ -24,7 +24,7 @@ scheduler_FIFO::scheduler_FIFO(){
 }
 
 double scheduler_FIFO::compute_priority(job * j){
-    return 0.0;
+    return this->jobs_queue.size();
 }
 
 bool scheduler_FIFO::job_fits_in_node(job * j, node * n, uint64_t t){
@@ -61,6 +61,7 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
                 (*it)->insert_job(*jobit);
                 remove_jobs.push_back(kill_id);
                 //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
+                LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
                 break;
             }else{
                 //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);

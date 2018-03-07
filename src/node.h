@@ -4,10 +4,19 @@
 #include "core.h"
 #include "log.h"
 #include "common-functions.h"
+#include <pthread.h>
 #include <vector>
 #include <queue>
 #include <algorithm>
 #include <iostream>
+
+typedef struct{
+    std::queue<job *> finished_jobs;
+    uint64_t from;
+    uint64_t to;
+    std::vector<core *> * cores;
+    uint64_t t;
+} Computing_threads_data;
 
 class node;
 
@@ -57,4 +66,5 @@ public:
 
     // For descending sort (more busy nodes first)
     static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->get_node_CPU_load() > b->at_node->get_node_CPU_load()); }
+    static void * compute_pthreaded(void * a);
 };

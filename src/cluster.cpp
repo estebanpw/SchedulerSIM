@@ -47,15 +47,17 @@ cluster::~cluster(){
     std::free(this->table_of_jobs_completition);
 }
 
-void cluster::compute(){
+int cluster::compute(){
     // Perform actions
     if(this->syscl->get_clock() % (QUANTUMS_IN_DAY) == 0 && this->syscl->get_time() > 0){
-        LOG->record(2, SYS_USE, this->syscl->get_time(), this->print_cluster_usage());
+        LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage().c_str());
         this->broadcast(1, "A day goes by... ");
     } 
+    
     // Check if there is a job waiting
 
     job * current_job = NULL;
+    uint64_t t_finished = 0, t_total = 0;
 
     if(this->input_jobs.size() > 0){
         current_job = this->input_jobs.front();
@@ -75,11 +77,11 @@ void cluster::compute(){
             // Schedule it insert to job queue
             //this->broadcast(2, "job enter ", current_job->to_string().c_str());
             // Current mode is just FIFO
-            LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage());
-            LOG->record(3, JOB_ENTER, this->syscl->get_time(), current_job->to_string().c_str());
+            LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage().c_str());
             this->sch->queue_job(current_job);
+            ++t_total;
+            LOG->record(4, JOB_ENTER, this->syscl->get_time(), this->sch->get_queued_jobs_size(), current_job->to_string().c_str());
             this->insert_job_waiting_signal(current_job);
-            this->sch->deploy_jobs(this->syscl->get_clock());
             
             // Remove this job from input first
             this->input_jobs.erase(this->input_jobs.begin());
@@ -89,11 +91,15 @@ void cluster::compute(){
             
         }
     }
+    // Only attempt to deploy jobs once every K second
+    if(this->syscl->get_clock() % (LOGIN_NODE_INTERVAL*QUANTUMS_PER_SEC) == 0 && this->sch->get_queued_jobs_size() > 0) this->sch->deploy_jobs(this->syscl->get_clock());
 
     // Compute quantums
 
     for(std::vector<node *>::iterator it = this->nodes.begin() ; it != this->nodes.end(); ++it){
+        //printf("I think this takes a lot...%" PRIu64 "\n", this->syscl->get_clock());
         std::queue<job *> * finished_jobs = (*it)->compute(this->syscl->get_clock());
+        //printf("correct?\n");
         
         // Delete jobs and broadcast finish time
         while(finished_jobs->size() > 0){
@@ -103,16 +109,18 @@ void cluster::compute(){
 
             if(this->add_finished_core_and_check(j)){
                 (*it)->free_memory_from_process(j->MEM_requested);
-                LOG->record(2, SYS_USE, this->syscl->get_time(), this->print_cluster_usage());
-                LOG->record(2, JOB_FINISH, this->syscl->get_time(), j->to_string().c_str());
+                LOG->record(3, SYS_USE, this->syscl->get_time(), this->print_cluster_usage().c_str());
+                LOG->record(3, JOB_FINISH, this->syscl->get_time(), j->to_string().c_str());
+                ++t_finished;
             }
             
         }
         
         delete finished_jobs;
     }
-
     this->syscl->next_clock();
+    if(t_finished == t_total && this->sch->get_queued_jobs_size() == 0 && this->input_jobs.size() == 0) return 1;
+    return 0;
 }
 
 void cluster::add_node(node * n){
@@ -181,7 +189,7 @@ bool cluster::shutdown_node(node * n){
     return false;
 }
 
-const char * cluster::print_cluster_usage(){
+std::string cluster::print_cluster_usage(){
 
     std::string s = "nodes " + std::to_string(this->nodes_online) + "/" + std::to_string(this->nodes.size());
 
@@ -201,7 +209,7 @@ const char * cluster::print_cluster_usage(){
     s += " memload " + std::to_string(mem_load / this->nodes_online) + "% "; 
     s += " cost/s " + std::to_string(cost_per_sec) + '\0';
 
-    return s.c_str();
+    return s;
 }
 
 

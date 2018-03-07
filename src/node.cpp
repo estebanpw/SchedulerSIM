@@ -26,6 +26,8 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
 
 std::queue<job *> * node::compute(uint64_t t){
     
+    uint64_t prev_n_threads = n_threads;
+
     std::queue<job *> * finished_jobs = new std::queue<job *>; 
     if(t == delay_clocks){
         
@@ -33,17 +35,82 @@ std::queue<job *> * node::compute(uint64_t t){
         if(!this->node_state) LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is off. See you!");
     }else if(t > delay_clocks){
         // Perform computations on each core
-        for(std::vector<core *>::iterator it = this->cores.begin() ; it != this->cores.end(); ++it){
-            job * job_state = (*it)->compute(t);
-            
-            if(job_state != NULL){
-                
-                (*it)->decrease_load();
-                finished_jobs->push(job_state);
+        if(this->get_node_CPU_load() > (double) 0){
+
+            if(n_threads > this->n_cores) n_threads = 1;
+
+            pthread_t * threads = (pthread_t *) malloc(n_threads * sizeof(pthread_t));
+            if(threads == NULL) terror("Could not create threads");
+            Computing_threads_data data_for_threads[n_threads];
+            int error;
+            for(uint64_t i=0; i<n_threads; i++){
+                data_for_threads[i].t = t;
+                data_for_threads[i].cores = &this->cores;
+                data_for_threads[i].from = i * (this->n_cores/n_threads);
+                data_for_threads[i].to = (i+1) * (this->n_cores/n_threads);
+                //printf("NCORES: %" PRIu64 " from %" PRIu64 " to %" PRIu64 "\n", this->n_cores, data_for_threads[i].from, data_for_threads[i].to);
+                if( 0 != (error = pthread_create(&threads[i], NULL, compute_pthreaded, (void *) (&data_for_threads[i])) )){
+                    fprintf(stdout, "Thread %" PRIu64 " returned %d:", i, error); terror("Could not launch");
+                }
             }
-        }   
+
+            // Wait for threads to finish
+            for(uint64_t i=0; i<n_threads; i++){
+                pthread_join(threads[i], NULL);
+            }
+
+            // Join queues
+            for(uint64_t i=0; i<n_threads; i++){
+                while(data_for_threads[i].finished_jobs.size() > 0){
+                    finished_jobs->push(data_for_threads[i].finished_jobs.front());
+                    data_for_threads[i].finished_jobs.pop();
+                }
+            }
+
+            /*
+
+            typedef struct{
+                std::queue<job *> finished_jobs;
+                uint64_t from;
+                uint64_t to;
+                std::vector<core *> * cores;
+                uint64_t t;
+            } Computing_threads_data;
+
+            */
+            
+            
+            /*
+            for(std::vector<core *>::iterator it = this->cores.begin() ; it != this->cores.end(); ++it){
+                job * job_state = (*it)->compute(t);
+                
+                if(job_state != NULL){
+                    
+                    (*it)->decrease_load();
+                    finished_jobs->push(job_state);
+                }
+            }
+            */
+        }
+           
     }
+    n_threads = prev_n_threads;
     return finished_jobs;
+}
+
+void * node::compute_pthreaded(void * a){
+    Computing_threads_data * data_in_thread = (Computing_threads_data *) a;
+    
+    for(uint64_t i=data_in_thread->from; i<data_in_thread->to; i++){
+        job * job_state = (data_in_thread->cores->at(i))->compute(data_in_thread->t);
+        
+        if(job_state != NULL){
+            
+            (data_in_thread->cores->at(i))->decrease_load();
+            data_in_thread->finished_jobs.push(job_state);
+        }
+    }
+    return NULL;
 }
 
 uint64_t node::get_available_cores(){
@@ -78,12 +145,13 @@ void node::insert_job(job * j){
     this->used_memory += j->MEM_requested;
     for(uint64_t i=0; i<(uint64_t)j->CPU_requested; i++){
 
-        if(this->load_in_cores.at(i) == NULL) 
+        if(this->load_in_cores.at(i) == NULL){
             terror("Bad allocation of resources");
-        else
+        }else{
             this->load_in_cores.at(i)->at_core->insert_job(j);
             //printf("insert %" PRIu64 " cores used: %" PRIu64 "\n", j->job_internal_identifier, i);
             this->load_in_cores.at(i)->at_core->increase_load();
+        }
     }
 
 }

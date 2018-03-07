@@ -51,6 +51,7 @@ uint64_t walltime_to_seconds(char * wtime){
     acum += 3600 * (uint64_t) atoi(aux);
 
     char * pos = strchr(wtime,'-');
+    //printf("%s\n", wtime);
     if(pos != NULL){
         // There is a day also attached
         // Days

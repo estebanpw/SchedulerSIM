@@ -31,11 +31,19 @@ job::job(uint64_t job_id, uint64_t job_internal_identifier, double CPU_min_use, 
 }
 
 std::string job::to_string(){
-    std::string s = std::to_string(this->job_id);
-    s += " ";
+    std::string s = " ID:" + std::to_string(this->job_id);
+    s += " SUBMIT:";
     s += std::to_string(this->submit_time_seconds);
-    s += " ";
+    s += " NAME:";
     s += this->job_name;
+    s += " CPUs:";
+    s += std::to_string(this->CPU_requested);
+    s += " MEM:";
+    s += std::to_string(this->MEM_requested);
+    s += " REM-QUA:";
+    s += std::to_string(this->remaining_quantums);
+    s += " PRIO:";
+    s += std::to_string(this->priority);
     s += '\0';
     return s;
 }
