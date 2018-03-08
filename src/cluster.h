@@ -21,6 +21,7 @@ private:
     std::vector<node *> nodes;
     scheduler * sch;
     Jobs_completition * table_of_jobs_completition;
+    uint64_t t_jobs;
     uint64_t quantum;
     uint64_t nodes_online;
     sysclock * syscl;
@@ -39,7 +40,7 @@ public:
     std::vector<node *> * get_nodes_list(){ return &this->nodes; }
     std::string print_cluster_usage();
     void broadcast(int count, ...);
-    void insert_job_waiting_signal(job * j){ this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched = j->CPU_requested; this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished = 0; }
+    void insert_job_waiting_signal(job * j){ this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched = j->CPU_requested; this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished = 0; this->table_of_jobs_completition[j->job_internal_identifier].j = j; }
     bool add_finished_core_and_check(job * j);
     ~cluster();
 };

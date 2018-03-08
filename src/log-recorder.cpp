@@ -70,6 +70,22 @@ void log_recorder::record(int count, ...){
             fprintf(this->out_log, "System was online for %s ", s.c_str());
         }
         break;
+        case QUEUE_STATUS: {
+            fprintf(this->out_log, "[JOBs STATUS] (t=%" PRIu64 ") ----------------",  va_arg(ap, uint64_t));
+        }
+        break;
+        case QUEUE_ROW: {
+            fprintf(this->out_log, "| %s", va_arg(ap, char *));
+        }
+        break;
+        case QUEUE_END: {
+            fprintf(this->out_log, "|---------------------------------------------\n");
+        }
+        break;
+        case QUEUE_ETC: {
+            fprintf(this->out_log, "|                    .....                    \n");
+        }
+        break;
     }
 
     va_end(ap);

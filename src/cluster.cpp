@@ -26,8 +26,8 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
     }
     std::sort(this->input_jobs.begin(), this->input_jobs.end(), job::compare_jobs_order);
     
-
-    this->table_of_jobs_completition = (Jobs_completition *) std::malloc(this->input_jobs.size() * sizeof(uint64_t) * 2);
+    this->t_jobs = this->input_jobs.size();
+    this->table_of_jobs_completition = (Jobs_completition *) std::calloc(this->input_jobs.size(), sizeof(uint64_t) * 2 + sizeof(job *));
     if(this->table_of_jobs_completition == NULL) terror("Could not allocate table of jobs completition");
 
 
@@ -49,6 +49,18 @@ int cluster::compute(){
     if(this->syscl->get_clock() % (QUANTUMS_IN_DAY) == 0 && this->syscl->get_time() > 0){
         LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->print_cluster_usage().c_str());
         LOG->record(2, DISPLAY_DATE, this->syscl->get_time());
+        
+        uint64_t counter = 0;
+        for(uint64_t i=0; i<this->t_jobs; i++){
+            if(this->table_of_jobs_completition[i].j != NULL && this->table_of_jobs_completition[i].n_cores_launched != this->table_of_jobs_completition[i].n_cores_finished){
+                if(counter == 0){ LOG->record(2, QUEUE_STATUS, this->syscl->get_time()); }
+                LOG->record(2, QUEUE_ROW, this->table_of_jobs_completition[i].j->to_string().c_str());
+                ++counter;
+            }
+            if(counter == MAX_JOBS_TO_SHOW){ LOG->record(1, QUEUE_ETC); break; }
+            
+        }
+        if(counter > 0) LOG->record(1, QUEUE_END);
     } 
 
     if(this->input_jobs.size() > 0){

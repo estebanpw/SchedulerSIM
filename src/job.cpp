@@ -28,12 +28,21 @@ job::job(uint64_t job_id, uint64_t job_internal_identifier, double CPU_min_use, 
     //getchar();
 
     this->priority = 0.0;
+
+    this->real_submit_clocks = 0;
+    this->real_start_clocks = 0;
+    this->real_end_clocks = 0;
+    this->state = 'W';
 }
 
 std::string job::to_string(){
     std::string s = " ID:" + std::to_string(this->job_id);
+    s += " STATE:";
+    s += this->state;
     s += " SUBMIT:";
-    s += std::to_string(this->submit_time_seconds);
+    s += std::to_string(this->real_submit_clocks);
+    s += " START:";
+    s += std::to_string(this->real_start_clocks);
     s += " NAME:";
     s += this->job_name;
     s += " CPUs:";

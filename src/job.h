@@ -31,6 +31,7 @@ public:
     uint64_t    real_submit_clocks;
     uint64_t    real_start_clocks;
     uint64_t    real_end_clocks;
+    char         state;
 
     double priority;
 
@@ -49,3 +50,9 @@ public:
     std::string to_string();
 
 };
+
+typedef struct jobs_completition{
+    uint64_t n_cores_launched;
+    uint64_t n_cores_finished;
+    job * j;
+} Jobs_completition;

@@ -10,6 +10,7 @@
 #define LOGIN_NODE_INTERVAL 5
 
 #define MAX_THREADS_PER_CPU 6
+#define MAX_JOBS_TO_SHOW 10
 
 #define DATA_LEN 100
 #define MACHINE_CONF_FIELDS 7
@@ -21,7 +22,7 @@
 #define INIT_MINUTE 24
 #define INIT_SECOND 16
 
-enum LOGTYPE { NODE_FOUND, NODE_ON, NODE_OFF, JOB_ENTER, JOB_START, JOB_FINISH, SYS_USE, SHUTDOWN, DISPLAY_DATE };
+enum LOGTYPE { NODE_FOUND, NODE_ON, NODE_OFF, JOB_ENTER, JOB_START, JOB_FINISH, SYS_USE, SHUTDOWN, DISPLAY_DATE, QUEUE_STATUS, QUEUE_ROW, QUEUE_END, QUEUE_ETC };
 
 extern bool MULTITHREADING;
 extern bool BACKFILL;
@@ -59,8 +60,3 @@ typedef struct picasso_row{
     int         exit_code;
 
 } Picasso_row;
-
-typedef struct jobs_completition{
-    uint64_t n_cores_launched;
-    uint64_t n_cores_finished;
-} Jobs_completition;

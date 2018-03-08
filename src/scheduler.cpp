@@ -64,6 +64,7 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
         for(std::vector<job *>::iterator jobit = this->jobs_queue.begin() ; jobit != this->jobs_queue.end(); ++jobit){
             for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
                 if(job_fits_in_node(*jobit, *it, t)){
+                    (*jobit)->state = 'R';
                     (*it)->insert_job(*jobit);
                     remove_jobs.push_back(kill_id);
                     //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
@@ -87,6 +88,7 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
         job * jobit = this->jobs_queue.front();
         for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
             if(job_fits_in_node(jobit, *it, t)){
+                jobit->state = 'R';
                 (*it)->insert_job(jobit);
                 jobit->real_start_clocks = t;
                 this->jobs_queue.erase(this->jobs_queue.begin());
