@@ -28,6 +28,10 @@ public:
     char        job_name[DATA_LEN];
     int         exit_code;
 
+    uint64_t    real_submit_clocks;
+    uint64_t    real_start_clocks;
+    uint64_t    real_end_clocks;
+
     double priority;
 
 

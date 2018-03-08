@@ -45,6 +45,8 @@ std::queue<job *> * node::compute(uint64_t t){
             Computing_threads_data data_for_threads[n_threads];
             int error;
             for(uint64_t i=0; i<n_threads; i++){
+
+                //printf("launchin thread %" PRIu64 "\n", i);
                 data_for_threads[i].t = t;
                 data_for_threads[i].cores = &this->cores;
                 data_for_threads[i].from = i * (this->n_cores/n_threads);

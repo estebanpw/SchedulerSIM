@@ -5,6 +5,8 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
     this->sch = sch;
     this->sch->set_nodes_list(this->get_nodes_list());
     this->nodes_online = 0;
+    this->t_total = 0;
+    this->t_finished = 0;
 
 
     Picasso_row pr;
@@ -37,15 +39,17 @@ cluster::~cluster(){
 
 int cluster::compute(){
     // Perform actions
-    if(this->syscl->get_clock() % (QUANTUMS_IN_DAY) == 0 && this->syscl->get_time() > 0){
-        LOG->record(4, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->print_cluster_usage().c_str());
-        this->broadcast(1, "A day goes by... ");
-    } 
+    
     
     // Check if there is a job waiting
 
     job * current_job = NULL;
-    uint64_t t_finished = 0, t_total = 0;
+    
+
+    if(this->syscl->get_clock() % (QUANTUMS_IN_DAY) == 0 && this->syscl->get_time() > 0){
+        LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->print_cluster_usage().c_str());
+        LOG->record(2, DISPLAY_DATE, this->syscl->get_time());
+    } 
 
     if(this->input_jobs.size() > 0){
         current_job = this->input_jobs.front();
@@ -56,11 +60,12 @@ int cluster::compute(){
             // Schedule it insert to job queue
             //this->broadcast(2, "job enter ", current_job->to_string().c_str());
             // Current mode is just FIFO
-            LOG->record(4, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->print_cluster_usage().c_str());
             this->sch->queue_job(current_job);
-            ++t_total;
+            this->t_total++;            
             LOG->record(4, JOB_ENTER, this->syscl->get_time(), this->sch->get_queued_jobs_size(), current_job->to_string().c_str());
+            LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), t_total, t_finished, this->print_cluster_usage().c_str());
             this->insert_job_waiting_signal(current_job);
+            current_job->real_submit_clocks = this->syscl->get_clock();
             
             // Remove this job from input first
             this->input_jobs.erase(this->input_jobs.begin());
@@ -88,9 +93,13 @@ int cluster::compute(){
 
             if(this->add_finished_core_and_check(j)){
                 (*it)->free_memory_from_process(j->MEM_requested);
-                LOG->record(4, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->print_cluster_usage().c_str());
-                LOG->record(4, JOB_FINISH, this->syscl->get_time(), this->sch->get_queued_jobs_size(), j->to_string().c_str());
-                ++t_finished;
+                j->real_end_clocks = this->syscl->get_clock();
+                this->t_finished++;
+
+                LOG->record(8, JOB_FINISH, this->syscl->get_time(), this->sch->get_queued_jobs_size(), j->real_submit_clocks, j->real_start_clocks, j->real_end_clocks,
+                j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
+                LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), t_total, t_finished, this->print_cluster_usage().c_str());
+                
             }
             
         }
@@ -98,7 +107,11 @@ int cluster::compute(){
         delete finished_jobs;
     }
     this->syscl->next_clock();
-    if(t_finished == t_total && this->sch->get_queued_jobs_size() == 0 && this->input_jobs.size() == 0) return 1;
+    if(t_finished == t_total && this->sch->get_queued_jobs_size() == 0 && this->input_jobs.size() == 0){
+        LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), t_total, t_finished, this->print_cluster_usage().c_str());
+        LOG->record(3, SHUTDOWN, this->syscl->get_time(), this->syscl->get_clock());
+        return 1;
+    }
     return 0;
 }
 

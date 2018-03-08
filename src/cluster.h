@@ -25,6 +25,8 @@ private:
     uint64_t nodes_online;
     sysclock * syscl;
 
+    uint64_t t_total, t_finished;
+
 public:
     cluster(FILE * f_input_jobs, scheduler * sch);
     int compute();
