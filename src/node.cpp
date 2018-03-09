@@ -36,7 +36,7 @@ std::queue<job *> * node::compute(uint64_t t){
         if(!this->node_state) LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is off. See you!");
     }else if(t > delay_clocks){
         // Perform computations on each core
-        if(this->get_node_CPU_load() > (double) 0){
+        if(this->efficient_get_node_CPU_load() > (double) 0){
 
             if(n_threads > this->n_cores) n_threads = 1;
 
@@ -44,17 +44,25 @@ std::queue<job *> * node::compute(uint64_t t){
             if(threads == NULL) terror("Could not create threads");
             Computing_threads_data data_for_threads[n_threads];
             int error;
-            for(uint64_t i=0; i<n_threads; i++){
+            for(uint64_t i=0; i<n_threads-1; i++){
 
-                //printf("launchin thread %" PRIu64 "\n", i);
                 data_for_threads[i].t = t;
                 data_for_threads[i].cores = &this->cores;
                 data_for_threads[i].from = i * (this->n_cores/n_threads);
                 data_for_threads[i].to = (i+1) * (this->n_cores/n_threads);
-                //printf("NCORES: %" PRIu64 " from %" PRIu64 " to %" PRIu64 "\n", this->n_cores, data_for_threads[i].from, data_for_threads[i].to);
+
                 if( 0 != (error = pthread_create(&threads[i], NULL, compute_pthreaded, (void *) (&data_for_threads[i])) )){
                     fprintf(stdout, "Thread %" PRIu64 " returned %d:", i, error); terror("Could not launch");
                 }
+            }
+            // Launch last thread
+            data_for_threads[n_threads-1].t = t;
+            data_for_threads[n_threads-1].cores = &this->cores;
+            data_for_threads[n_threads-1].from = n_threads-1 * (this->n_cores/n_threads);
+            data_for_threads[n_threads-1].to = this->n_cores;
+
+            if( 0 != (error = pthread_create(&threads[n_threads-1], NULL, compute_pthreaded, (void *) (&data_for_threads[n_threads-1])) )){
+                fprintf(stdout, "Thread %" PRIu64 " returned %d:", n_threads-1, error); terror("Could not launch");
             }
 
             // Wait for threads to finish
