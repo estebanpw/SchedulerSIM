@@ -27,7 +27,7 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
 
 std::queue<job *> * node::compute(uint64_t t){
     
-    uint64_t prev_n_threads = n_threads;
+    //uint64_t prev_n_threads = n_threads;
 
     std::queue<job *> * finished_jobs = new std::queue<job *>; 
     if(t == delay_clocks){
@@ -38,6 +38,7 @@ std::queue<job *> * node::compute(uint64_t t){
         // Perform computations on each core
         if(this->efficient_get_node_CPU_load() > (double) 0){
 
+            /*
             if(n_threads > this->n_cores) n_threads = 1;
 
             pthread_t * threads = (pthread_t *) malloc(n_threads * sizeof(pthread_t));
@@ -78,6 +79,7 @@ std::queue<job *> * node::compute(uint64_t t){
                     this->efficient_t_jobs--;
                 }
             }
+            */
 
             /*
 
@@ -92,7 +94,7 @@ std::queue<job *> * node::compute(uint64_t t){
             */
             
             
-            /*
+            
             for(std::vector<core *>::iterator it = this->cores.begin() ; it != this->cores.end(); ++it){
                 job * job_state = (*it)->compute(t);
                 
@@ -102,11 +104,11 @@ std::queue<job *> * node::compute(uint64_t t){
                     finished_jobs->push(job_state);
                 }
             }
-            */
+            
         }
            
     }
-    n_threads = prev_n_threads;
+    //n_threads = prev_n_threads;
     return finished_jobs;
 }
 
