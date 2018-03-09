@@ -27,6 +27,16 @@ double scheduler_FIFO::compute_priority(job * j){
     return this->jobs_queue.size();
 }
 
+void scheduler_FIFO::manage_nodes_state(){
+    
+    for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+        // Policies for power 
+        
+        // Basic policy: let them all on
+        (*it)->how_the_scheduler_wants_it = true;
+    }
+}
+
 bool scheduler_FIFO::job_fits_in_node(job * j, node * n, uint64_t t){
     if(!n->get_state() || n->is_system_busy() > t){ 
         //printf("node state: %d sys_busy %" PRIu64 " t: %" PRIu64 "\n", n->get_state(), n->is_system_busy(), t);

@@ -65,12 +65,16 @@ fill_scaled_stat_per_time <- function(stat_object, time_object, makespan, time_u
 # Read log
 
 makespan <- 0
+maxnodes <- 0
 job_finish_times <- c()
 queued_jobs <- c()
 launched_jobs <- c()
 finished_jobs <- c()
 jobs_times <- c()
 cost_per_second <- c()
+cpu_usage <- c()
+mem_usage <- c()
+nodes_usage <- c()
 diff_submit_start_jobs <- c()
 
 con = file(path_mat, "r")
@@ -99,6 +103,12 @@ while ( TRUE ) {
       launched_jobs <- c(launched_jobs, as.numeric((strsplit(line, "\\$"))[[1]][6]))
       finished_jobs <- c(finished_jobs, as.numeric((strsplit(line, "\\$"))[[1]][8]))
       cost_per_second <- c(cost_per_second, as.numeric(strsplit(line, "\\s|\\$")[[1]][27]))
+      
+      cpu_usage <- c(cpu_usage, as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][21], "%")[[1]][1]))
+      mem_usage <- c(mem_usage, as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][24], "%")[[1]][1]))
+      nodes_usage <- c(nodes_usage, as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][19], "/")[[1]][1]))
+      maxnodes <- as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][19], "/")[[1]][2])
+      
     }
     
     # Copy [SYSTEM OFF] (t=1505485) (CL=7527426)
@@ -142,7 +152,24 @@ plot(m_cost[,1], m_cost[,2], type = "l", main = paste("Cost throughout time ( c 
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Cost in monetary units")
 
-print(paste("Total billig:", paste(sum(m_cost[,2]), "monetary units")))
+# Plot CPU and MEM usage
+m_cpu <- fill_scaled_stat_per_time(cpu_usage, jobs_times, makespan, time_unit)
+m_mem <- fill_scaled_stat_per_time(mem_usage, jobs_times, makespan, time_unit)
+plot(m_cpu[,1], m_cpu[,2], ylim = c(0, 100), type = "l", main = "CPU and MEM usage (%)",
+     xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
+     ylab = "Percentage of use", col = "red")
+legend("topleft", legend=c("CPU usage", "Mem usage"),
+       col=c("red", "blue"), lty=1:1, cex=0.8)
+lines(m_mem[,1], m_mem[,2], col = "blue")
+
+# Plot nodes use
+m_nodes <- fill_scaled_stat_per_time(nodes_usage, jobs_times, makespan, time_unit)
+plot(m_nodes[,1], m_nodes[,2], ylim = c(0, maxnodes), type = "l", main = "Nodes usage (absolute)",
+     xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
+     ylab = "Nodes online", col = "red")
+
+# Plot general information
+print(paste("Total billing:", paste(sum(m_cost[,2]), "monetary units")))
 print(paste("Makespan ( s ):", makespan))
 print(paste("Makespan (", paste(time_unit_symbol, paste("):", makespan / time_unit))))
 print(paste("Average throughput ( jobs /", paste(time_unit_symbol, paste("): ", length(job_finish_times)/(makespan/(time_unit))))))

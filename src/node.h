@@ -46,9 +46,11 @@ private:
 
 public:
     node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, uint64_t penalty_boot, uint64_t penalty_shutdown, uint64_t cost_per_second);
+    bool how_the_scheduler_wants_it;
     std::queue<job *> * compute(uint64_t t);
     bool get_state(){ return this->node_state; }
     uint64_t is_system_busy(){ return this->delay_clocks; }
+    bool can_I_use_it(uint64_t t){ return (this->node_state && this->delay_clocks <= t); }
     void turn_on(uint64_t t){ this->node_state = true; this->delay_clocks = this->penalty_boot*QUANTUMS_PER_SEC + t; }
     void turn_off(uint64_t t){ this->node_state = false; this->delay_clocks = this->penalty_shutdown*QUANTUMS_PER_SEC + t; } // KILL signals should be distributed
 
@@ -65,6 +67,7 @@ public:
     char * get_name(){ return node_name; }
 
     void insert_job(job * j);
+    uint64_t get_id(){ return this->id_node; }
 
     // For descending sort (more busy nodes first)
     static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load()); }

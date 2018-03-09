@@ -23,6 +23,8 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
 
     this->delay_clocks = 0;
     this->efficient_t_jobs = 0;
+
+    this->how_the_scheduler_wants_it = true;
 }
 
 std::queue<job *> * node::compute(uint64_t t){
@@ -34,7 +36,7 @@ std::queue<job *> * node::compute(uint64_t t){
         
         if(this->node_state) LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is on. Hooray!");
         if(!this->node_state) LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is off. See you!");
-    }else if(t > delay_clocks){
+    }else if(t > delay_clocks && this->node_state){ // System must be on and not busy
         // Perform computations on each core
         if(this->efficient_get_node_CPU_load() > (double) 0){
 
