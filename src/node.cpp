@@ -102,6 +102,7 @@ std::queue<job *> * node::compute(uint64_t t){
                     
                     (*it)->decrease_load();
                     finished_jobs->push(job_state);
+                    this->efficient_t_jobs--;
                 }
             }
             
