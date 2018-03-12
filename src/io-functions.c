@@ -7,11 +7,13 @@ uint64_t normalize_date(const char * d1, struct tm * zero){
     char aux[DATA_LEN];
     struct tm newdate;
 
+    // 2014-09-24T01:10:07 2014-10-01T01:10:13
+
     strncpy(&aux[0], &d1[0], 4); aux[4] = '\0'; // Copy year
     newdate.tm_year = atoi(aux);
 
-    strncpy(&aux[0], &d1[6], 2); aux[2] = '\0'; // Copy month
-    newdate.tm_mon = atoi(aux);
+    strncpy(&aux[0], &d1[5], 2); aux[2] = '\0'; // Copy month
+    newdate.tm_mon = atoi(aux) - 1;
 
     strncpy(&aux[0], &d1[8], 2); aux[2] = '\0'; // Copy day
     newdate.tm_mday = atoi(aux);
@@ -91,6 +93,14 @@ int picasso_read_row(FILE * f_in, Picasso_row * pr){
     pr->start_time_seconds = normalize_date(starttime_aux, &zero);
     pr->end_time_seconds = normalize_date(endtime_aux, &zero);
     pr->run_time_seconds = pr->end_time_seconds - pr->start_time_seconds;
+
+    /*
+    if(pr->run_time_seconds > (uint64_t) 18146744073709551615){
+        fprintf(stdout, "%" PRIu64 " %s %s \n", pr->job_id, starttime_aux, endtime_aux);
+        fprintf(stdout, "Check start and end: %" PRIu64 ", %" PRIu64 "\n", pr->start_time_seconds, pr->end_time_seconds);
+        terror("Its bad!");
+    }
+    */
 
     return read;
 }
