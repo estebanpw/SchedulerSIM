@@ -47,6 +47,16 @@ void log_recorder::record(int count, ...){
             for(int i=6; i<count; i++) fprintf(this->out_log, "%s ", va_arg(ap, char *));
         }
         break;
+        case JOB_ABORTED: {
+            fprintf(this->out_log, "[JOB ABORTED] (t=$%" PRIu64 "$) ",  va_arg(ap, uint64_t));
+            fprintf(this->out_log, " (in-queue=$%" PRIu64 "$) ", va_arg(ap, uint64_t));
+            fprintf(this->out_log, " (CL-submi=$%" PRIu64 "$) ", va_arg(ap, uint64_t));
+            fprintf(this->out_log, " (CL-start=$%" PRIu64 "$) ", va_arg(ap, uint64_t));
+            fprintf(this->out_log, " (CL-end  =$%" PRIu64 "$) ", va_arg(ap, uint64_t));
+
+            for(int i=6; i<count; i++) fprintf(this->out_log, "%s ", va_arg(ap, char *));
+        }
+        break;
         case SYS_USE: {
             fprintf(this->out_log, "[SYS LOAD] (t=$%" PRIu64 "$) ",  va_arg(ap, uint64_t));
             fprintf(this->out_log, " (in-queue=$%" PRIu64 "$) ", va_arg(ap, uint64_t));

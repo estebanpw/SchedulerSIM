@@ -122,7 +122,10 @@ close(con)
 
 # Output results
 
-time_unit <- 60*60
+pdf(paste(path_mat, ".pdf", sep="")) 
+par(mfrow=c(3,2))
+
+#png(paste(path_mat, ".png", sep=""), width = length(data[,1]), height = length(data[,1]))
 
 # Plot throughput
 m_throughput <- scaled_throughput(job_finish_times, makespan, time_unit)
@@ -168,9 +171,13 @@ plot(m_nodes[,1], m_nodes[,2], ylim = c(0, maxnodes), type = "l", main = "Nodes 
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Nodes online", col = "red")
 
+
+
 # Plot general information
 print(paste("Total billing:", paste(sum(m_cost[,2]), "monetary units")))
 print(paste("Makespan ( s ):", makespan))
 print(paste("Makespan (", paste(time_unit_symbol, paste("):", makespan / time_unit))))
 print(paste("Average throughput ( jobs /", paste(time_unit_symbol, paste("): ", length(job_finish_times)/(makespan/(time_unit))))))
+
+dev.off()
 

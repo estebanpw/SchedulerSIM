@@ -15,10 +15,23 @@ void scheduler::pop_next_job(){
     this->jobs_queue.erase(this->jobs_queue.begin());
 }
 
+bool scheduler::job_fits_in_node(job * j, node * n, uint64_t t){
+    if(!n->get_state() || n->is_system_busy() > t){ 
+        //printf("node state: %d sys_busy %" PRIu64 " t: %" PRIu64 "\n", n->get_state(), n->is_system_busy(), t);
+        return false; 
+    }
+
+    if(j->CPU_requested <= n->get_available_cores() && (double) j->MEM_requested <= n->get_free_memory()){
+        // Job fits in this node
+        //printf("job %" PRIu64 " asks for %le cores and fits in node %s\n", j->job_internal_identifier, j->CPU_requested, n->get_name());
+        //getchar();
+        return true;
+    }
+    return false;
+}
 
 
-
-// ****** Start Scheduler FIFO ****************************************************************************
+// ****** Start Scheduler FIFO nodes online 24/7 ****************************************************************************
 scheduler_FIFO::scheduler_FIFO(){
     this->total_jobs_queued = 0;
 }
@@ -35,21 +48,6 @@ void scheduler_FIFO::manage_nodes_state(){
         // Basic policy: let them all on
         (*it)->how_the_scheduler_wants_it = true;
     }
-}
-
-bool scheduler_FIFO::job_fits_in_node(job * j, node * n, uint64_t t){
-    if(!n->get_state() || n->is_system_busy() > t){ 
-        //printf("node state: %d sys_busy %" PRIu64 " t: %" PRIu64 "\n", n->get_state(), n->is_system_busy(), t);
-        return false; 
-    }
-
-    if(j->CPU_requested <= n->get_available_cores() && (double) j->MEM_requested <= n->get_free_memory()){
-        // Job fits in this node
-        //printf("job %" PRIu64 " asks for %le cores and fits in node %s\n", j->job_internal_identifier, j->CPU_requested, n->get_name());
-        //getchar();
-        return true;
-    }
-    return false;
 }
 
 void scheduler_FIFO::queue_job(job * j){
@@ -111,4 +109,4 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
 
 
 
-// ****** End Scheduler FIFO ****************************************************************************
+// ****** End Scheduler FIFO nodes online 24/7 ****************************************************************************

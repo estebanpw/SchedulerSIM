@@ -47,8 +47,8 @@ int main(int argc, char ** av){
     open_files(av[1], av[2], av[3], &f_machine_conf, &f_workload, &f_log_out);
     LOG = new log_recorder(f_log_out);
     n_threads = (uint64_t) atoi(av[4]);
-    if(strcmp(av[5], "true") == 0) BACKFILL = true;
-    if(strcmp(av[6], "true") == 0) MULTITHREADING = true;
+    if(strcmp(av[5], "TRUE") == 0) BACKFILL = true;
+    if(strcmp(av[6], "TRUE") == 0) MULTITHREADING = true;
 
     scheduler_FIFO * sch_FIFO = new scheduler_FIFO();
     cluster * system_cluster = new cluster(f_workload, sch_FIFO);

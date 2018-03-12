@@ -25,6 +25,8 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
     this->efficient_t_jobs = 0;
 
     this->how_the_scheduler_wants_it = true;
+    this->time_online = 0;
+    this->time_offline = 0;
 }
 
 std::queue<job *> * node::compute(uint64_t t){
@@ -34,9 +36,19 @@ std::queue<job *> * node::compute(uint64_t t){
     std::queue<job *> * finished_jobs = new std::queue<job *>; 
     if(t == delay_clocks){
         
-        if(this->node_state) LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is on. Hooray!");
-        if(!this->node_state) LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is off. See you!");
+        if(this->node_state){ 
+            LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is on. Hooray!"); 
+            this->time_online = 0; 
+            this->time_offline = 0;
+        } 
+        if(!this->node_state){ 
+            LOG->record(4, NODE_ON, t/QUANTUMS_PER_SEC, "Node ", this->node_name, " is off. See you!");
+            this->time_online = 0; 
+            this->time_offline = 0;
+        }     
     }else if(t > delay_clocks && this->node_state){ // System must be on and not busy
+
+        this->time_online++;
         // Perform computations on each core
         if(this->efficient_get_node_CPU_load() > (double) 0){
 
@@ -110,6 +122,8 @@ std::queue<job *> * node::compute(uint64_t t){
             
         }
            
+    }else{
+        this->time_offline++;
     }
     //n_threads = prev_n_threads;
     return finished_jobs;

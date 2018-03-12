@@ -37,6 +37,8 @@ private:
     uint64_t penalty_shutdown;
     uint64_t cost_per_second;
     uint64_t efficient_t_jobs;
+    uint64_t time_online;
+    uint64_t time_offline;
     std::vector<core *> cores;
     std::vector<jobs_per_core *> load_in_cores;
     
@@ -55,6 +57,8 @@ public:
     void turn_off(uint64_t t){ this->node_state = false; this->delay_clocks = this->penalty_shutdown*QUANTUMS_PER_SEC + t; } // KILL signals should be distributed
 
     void print_node(){ std::cout << "Node " << id_node << ":" << node_name << " [" << n_cores << "CPUs " << total_memory << "GB" << "]" << std::endl; }
+    uint64_t get_time_online(){ return this->time_online; }
+    uint64_t get_time_offline(){ return this->time_offline; }
     double get_node_CPU_load();
     double efficient_get_node_CPU_load();
     double get_node_MEM_load();
