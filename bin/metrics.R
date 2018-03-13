@@ -25,8 +25,8 @@ scaled_throughput <- function(job_finish_times, makespan, time_unit){
   m[,2] <- 0
   
   for(j in job_finish_times){
-    c <- job_finish_times/time_unit
-    m[c,2] <- m[c,2] + 1
+    k <- j/time_unit
+    m[k,2] <- m[k,2] + 1
   }
   
   return (m)
@@ -40,8 +40,8 @@ scaled_stat_per_time <- function(stat_object, time_object, makespan, time_unit){
   m[,2] <- 0
   
   for(i in 1:length(stat_object)){
-    c <- time_object[i]/time_unit
-    m[c,2] <- m[c,2] + stat_object[i]
+    k <- time_object[i]/time_unit
+    m[k,2] <- m[k,2] + stat_object[i]
   }
   
   return (m)
