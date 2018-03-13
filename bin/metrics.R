@@ -14,6 +14,8 @@ if(time_unit_symbol == "s") time_unit <- 1
 if(time_unit_symbol == "m") time_unit <- 60
 if(time_unit_symbol == "h") time_unit <- 60*60
 if(time_unit_symbol == "d") time_unit <- 60*60*24
+if(time_unit_symbol == "w") time_unit <- 60*60*24*7
+if(time_unit_symbol == "M") time_unit <- 60*60*24*7*4
 
 # Function to scale jobs into time units
 scaled_throughput <- function(job_finish_times, makespan, time_unit){
@@ -93,25 +95,27 @@ while ( TRUE ) {
     if( grepl("JOB LAUNCHED", line) == TRUE){
       submit <- as.numeric(strsplit(line, ":|\\s")[[1]][11])
       start <- as.numeric(strsplit(line, ":|\\s")[[1]][13])
-      diff_submit_start_jobs <- c(diff_submit_start_jobs, (start - submit)/60 )
+      diff_submit_start_jobs <- c(diff_submit_start_jobs, (start - submit)/60 ) # This one is always a histogram in minutes
     }
     
     # Copy [SYS LOAD]
     if( grepl("SYS LOAD", line) == TRUE){
-      jobs_times <- c(jobs_times, as.numeric((strsplit(line, "\\$"))[[1]][2]))
-      queued_jobs <- c(queued_jobs, as.numeric((strsplit(line, "\\$"))[[1]][4]))
-      launched_jobs <- c(launched_jobs, as.numeric((strsplit(line, "\\$"))[[1]][6]))
-      finished_jobs <- c(finished_jobs, as.numeric((strsplit(line, "\\$"))[[1]][8]))
-      cost_per_second <- c(cost_per_second, as.numeric(strsplit(line, "\\s|\\$")[[1]][27]))
+      ss_just_dollar <- strsplit(line, "\\$")
+      ss__dollar_and_space <- strsplit(line, "\\s|\\$")
+      jobs_times <- c(jobs_times, as.numeric(ss_just_dollar[[1]][2]))
+      queued_jobs <- c(queued_jobs, as.numeric(ss_just_dollar[[1]][4]))
+      launched_jobs <- c(launched_jobs, as.numeric(ss_just_dollar[[1]][6]))
+      finished_jobs <- c(finished_jobs, as.numeric(ss_just_dollar[[1]][8]))
+      cost_per_second <- c(cost_per_second, as.numeric(ss__dollar_and_space[[1]][27]))
       
-      cpu_usage <- c(cpu_usage, as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][21], "%")[[1]][1]))
-      mem_usage <- c(mem_usage, as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][24], "%")[[1]][1]))
-      nodes_usage <- c(nodes_usage, as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][19], "/")[[1]][1]))
-      maxnodes <- as.numeric(strsplit(strsplit(line, "\\s|\\$")[[1]][19], "/")[[1]][2])
+      cpu_usage <- c(cpu_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][21], "%")[[1]][1]))
+      mem_usage <- c(mem_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][24], "%")[[1]][1]))
+      nodes_usage <- c(nodes_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][19], "/")[[1]][1]))
+      maxnodes <- as.numeric(strsplit(ss__dollar_and_space[[1]][19], "/")[[1]][2])
       
     }
     
-    # Copy [SYSTEM OFF] (t=1505485) (CL=7527426)
+    # Copy [SYSTEM OFF] (t=$1505485$) (CL=$7527426$)
     if( grepl("SYSTEM OFF", line) == TRUE){
       makespan <- as.numeric(strsplit(line, "\\$")[[1]][2])
     }
