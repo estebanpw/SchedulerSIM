@@ -62,7 +62,8 @@ void log_recorder::record(int count, ...){
             fprintf(this->out_log, " (in-queue=$%" PRIu64 "$) ", va_arg(ap, uint64_t));
             fprintf(this->out_log, " (t-launch=$%" PRIu64 "$) ", va_arg(ap, uint64_t));
             fprintf(this->out_log, " (t-finish=$%" PRIu64 "$) ", va_arg(ap, uint64_t));
-            for(int i=5; i<count; i++) fprintf(this->out_log, "%s ", va_arg(ap, char *));
+            fprintf(this->out_log, " (t-abort =$%" PRIu64 "$) ", va_arg(ap, uint64_t));
+            for(int i=6; i<count; i++) fprintf(this->out_log, "%s ", va_arg(ap, char *));
         }
         break;
         case SHUTDOWN: {

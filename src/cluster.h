@@ -26,7 +26,7 @@ private:
     uint64_t nodes_online;
     sysclock * syscl;
 
-    uint64_t t_total, t_finished;
+    uint64_t t_total, t_finished, t_aborted;
 
 public:
     cluster(FILE * f_input_jobs, scheduler * sch);
@@ -41,6 +41,6 @@ public:
     std::string print_cluster_usage();
     void broadcast(int count, ...);
     void insert_job_waiting_signal(job * j){ this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched = j->CPU_requested; this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished = 0; this->table_of_jobs_completition[j->job_internal_identifier].j = j; }
-    bool add_finished_core_and_check(job * j);
+    JOBSTATE add_finished_core_and_check(job * j);
     ~cluster();
 };

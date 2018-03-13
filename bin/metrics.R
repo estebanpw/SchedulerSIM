@@ -17,6 +17,9 @@ if(time_unit_symbol == "d") time_unit <- 60*60*24
 if(time_unit_symbol == "w") time_unit <- 60*60*24*7
 if(time_unit_symbol == "M") time_unit <- 60*60*24*7*4
 
+# Disable scientific notation
+options(scipen=999)
+
 # Function to scale jobs into time units
 scaled_throughput <- function(job_finish_times, makespan, time_unit){
   
@@ -72,6 +75,7 @@ job_finish_times <- c()
 queued_jobs <- c()
 launched_jobs <- c()
 finished_jobs <- c()
+aborted_jobs <- c()
 jobs_times <- c()
 cost_per_second <- c()
 cpu_usage <- c()
@@ -106,13 +110,14 @@ while ( TRUE ) {
       queued_jobs <- c(queued_jobs, as.numeric(ss_just_dollar[[1]][4]))
       launched_jobs <- c(launched_jobs, as.numeric(ss_just_dollar[[1]][6]))
       finished_jobs <- c(finished_jobs, as.numeric(ss_just_dollar[[1]][8]))
-      cost_per_second <- c(cost_per_second, as.numeric(ss__dollar_and_space[[1]][27]))
+      aborted_jobs <- c(finished_jobs, as.numeric(ss_just_dollar[[1]][10]))      
+      cost_per_second <- c(cost_per_second, as.numeric(ss__dollar_and_space[[1]][32]))
       
-      cpu_usage <- c(cpu_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][21], "%")[[1]][1]))
-      mem_usage <- c(mem_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][24], "%")[[1]][1]))
-      nodes_usage <- c(nodes_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][19], "/")[[1]][1]))
-      maxnodes <- as.numeric(strsplit(ss__dollar_and_space[[1]][19], "/")[[1]][2])
-      
+      cpu_usage <- c(cpu_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][26], "%")[[1]][1]))
+      mem_usage <- c(mem_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][29], "%")[[1]][1]))
+      nodes_usage <- c(nodes_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][24], "/")[[1]][1]))
+      maxnodes <- as.numeric(strsplit(ss__dollar_and_space[[1]][24], "/")[[1]][2])
+
     }
     
     # Copy [SYSTEM OFF] (t=$1505485$) (CL=$7527426$)
@@ -141,14 +146,16 @@ plot(m_throughput[,1], m_throughput[,2], type = "l", main = paste("Throughput (j
 m_queued <- scaled_stat_per_time(queued_jobs, jobs_times, makespan, time_unit)
 m_launched <- scaled_stat_per_time(launched_jobs, jobs_times, makespan, time_unit)
 m_finished <- scaled_stat_per_time(finished_jobs, jobs_times, makespan, time_unit)
+m_aborted <- scaled_stat_per_time(aborted_jobs, jobs_times, makespan, time_unit)
 
 plot(m_queued[,1], m_queued[,2], ylim = c(0, max(m_queued[,2], m_launched[,2], m_finished[,2])), type = "l", main = "Job status throughout time",
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Number of jobs")
-legend("topleft", legend=c("Jobs queued", "Jobs launched", "Jobs finished"),
-       col=c("black", "red", "blue"), lty=1:1, cex=0.8)
+legend("topleft", legend=c("Jobs queued", "Jobs launched", "Jobs finished", "Jobs aborted"),
+       col=c("black", "red", "blue", "green"), lty=1:1, cex=0.8)
 lines(m_launched[,1], m_launched[,2], col = "red")
 lines(m_finished[,1], m_finished[,2], col = "blue")
+lines(m_aborted[,1], m_aborted[,2], col = "green")
 
 # Plot queue time histogram
 hist(diff_submit_start_jobs, main = "Histogram of queueing time (m)", xlab = "Minutes spent in queue")

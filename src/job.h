@@ -27,7 +27,8 @@ public:
     char        account_name[DATA_LEN];
     char        job_name[DATA_LEN];
     int         exit_code;
-
+    
+    int         real_exit_code;
     uint64_t    real_submit_clocks;
     uint64_t    real_start_clocks;
     uint64_t    real_end_clocks;
@@ -43,7 +44,7 @@ public:
     char * account_name, char * job_name, int exit_code);
 
     uint64_t get_remaining_quantums(){ return this->remaining_quantums; }
-    void compute(){ this->remaining_quantums--; }
+    void compute(){ this->remaining_quantums--; this->wall_time_clocks--; }
     uint64_t get_submit_time(){ return this->submit_time_seconds; }
     char * get_name(){ return this->job_name; }
     uint64_t get_job_id(){ return this->job_id; }
@@ -56,4 +57,5 @@ typedef struct jobs_completition{
     uint64_t n_cores_launched;
     uint64_t n_cores_finished;
     job * j;
+    int exit_code;
 } Jobs_completition;

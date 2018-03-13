@@ -13,18 +13,28 @@ job * core::compute(uint64_t t){
 
         if(j != NULL){
             // Perform computation
-            if(j->get_remaining_quantums() > 0){
-                /*
-                if(j->get_remaining_quantums() % QUANTUMS_IN_DAY == 0){
-                    printf("Job %" PRIu64 " has %" PRIu64" quantums remaining which are %" PRIu64 " days\n", j->job_internal_identifier, j->get_remaining_quantums(), j->get_remaining_quantums() / (uint64_t) QUANTUMS_IN_DAY);
-                    getchar();
-                }
-                */
-                j->compute();
+            
+            // First, make sure the job did not crash or was not aborted
+            if(j->real_exit_code == 0){
+                // Then, check that it still has quantums
+                if(j->remaining_quantums > 0){
+                    // Before computing further, check that we did not reach walltime
+                    if(j->wall_time_clocks > 0){
+                        // Compute
+                        j->compute();
+                        this->jobs.push(j); // Append to end of queue
+                        return NULL;
+                    }else{
+                        // Abort the job
+                        j->real_exit_code = -1;
+                        return j;
+                    }
 
-                this->jobs.push(j); // Append to end of queue
-            }else{
-                return j;
+                }else{
+                    // If no more quantums, it is completed
+                    return j;
+                }
+
             }
         }  
     }

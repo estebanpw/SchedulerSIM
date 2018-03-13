@@ -23,15 +23,17 @@ job::job(uint64_t job_id, uint64_t job_internal_identifier, double CPU_min_use, 
     strcpy(this->account_name, account_name);
     strcpy(this->job_name, job_name);
     this->exit_code = exit_code;
+    
     this->remaining_quantums = this->run_time_seconds * QUANTUMS_PER_SEC;
-    //printf("this job has %" PRIu64 "quantums. runtime is %" PRIu64 " which are %" PRIu64 " days\n",  this->remaining_quantums, this->run_time_seconds, this->run_time_seconds/(60*60*24));
-    //getchar();
+    this->wall_time_clocks = this->wall_time_seconds * QUANTUMS_PER_SEC;
+    
 
     this->priority = 0.0;
 
     this->real_submit_clocks = 0;
     this->real_start_clocks = 0;
     this->real_end_clocks = 0;
+    this->real_exit_code = 0;
     this->state = 'W';
 }
 

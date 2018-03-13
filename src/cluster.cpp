@@ -7,6 +7,7 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
     this->nodes_online = 0;
     this->t_total = 0;
     this->t_finished = 0;
+    this->t_aborted = 0;
 
 
     Picasso_row pr;
@@ -27,7 +28,7 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
     std::sort(this->input_jobs.begin(), this->input_jobs.end(), job::compare_jobs_order);
     
     this->t_jobs = this->input_jobs.size();
-    this->table_of_jobs_completition = (Jobs_completition *) std::calloc(this->input_jobs.size(), sizeof(uint64_t) * 2 + sizeof(job *));
+    this->table_of_jobs_completition = (Jobs_completition *) std::calloc(this->input_jobs.size(), sizeof(Jobs_completition));
     if(this->table_of_jobs_completition == NULL) terror("Could not allocate table of jobs completition");
 
 
@@ -49,7 +50,7 @@ int cluster::compute(){
     
 
     if(curr_clock % (QUANTUMS_IN_DAY) == 0 && curr_time > 0){
-        LOG->record(6, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->print_cluster_usage().c_str());
+        LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
         LOG->record(2, DISPLAY_DATE, curr_time);
         
         uint64_t counter = 0;
@@ -77,7 +78,7 @@ int cluster::compute(){
             this->sch->queue_job(current_job);
             this->t_total++;            
             LOG->record(4, JOB_ENTER, this->syscl->get_time(), this->sch->get_queued_jobs_size(), current_job->to_string().c_str());
-            LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), t_total, t_finished, this->print_cluster_usage().c_str());
+            LOG->record(7, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
             this->insert_job_waiting_signal(current_job);
             current_job->real_submit_clocks = curr_clock;
             
@@ -119,15 +120,22 @@ int cluster::compute(){
             job * j = finished_jobs->front();
             finished_jobs->pop();
 
-            if(this->add_finished_core_and_check(j)){
+            JOBSTATE js = this->add_finished_core_and_check(j);
+
+            if(js == JOB_DONE){
                 (*it)->free_memory_from_process(j->MEM_requested);
                 j->real_end_clocks = curr_clock;
                 this->t_finished++;
-
                 LOG->record(8, JOB_FINISH, curr_time, this->sch->get_queued_jobs_size(), j->real_submit_clocks, j->real_start_clocks, j->real_end_clocks,
                 j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
-                LOG->record(6, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), t_total, t_finished, this->print_cluster_usage().c_str());
-                
+                LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
+            }else if(js == JOB_ABORT){
+                (*it)->free_memory_from_process(j->MEM_requested);
+                j->real_end_clocks = curr_clock;
+                this->t_aborted++;
+                LOG->record(8, JOB_ABORTED, curr_time, this->sch->get_queued_jobs_size(), j->real_submit_clocks, j->real_start_clocks, j->real_end_clocks,
+                j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
+                LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
             }
             
         }
@@ -135,8 +143,8 @@ int cluster::compute(){
         delete finished_jobs;
     }
     this->syscl->next_clock();
-    if(t_finished == t_total && this->sch->get_queued_jobs_size() == 0 && this->input_jobs.size() == 0){
-        LOG->record(6, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), t_total, t_finished, this->print_cluster_usage().c_str());
+    if( (t_finished+t_aborted) == t_total && this->sch->get_queued_jobs_size() == 0 && this->input_jobs.size() == 0){
+        LOG->record(7, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
         LOG->record(3, SHUTDOWN, this->syscl->get_time(), this->syscl->get_clock());
         return 1;
     }
@@ -234,9 +242,16 @@ std::string cluster::print_cluster_usage(){
 }
 
 
-bool cluster::add_finished_core_and_check(job * j){ 
+JOBSTATE cluster::add_finished_core_and_check(job * j){ 
     this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished++;
-    //printf("job %" PRIu64 " added up to %" PRIu64 " cores when req is %le\n", j->job_internal_identifier, this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished, j->CPU_requested);
-    //getchar();
-    return (this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched == this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished); 
+
+    if(j->real_exit_code == 0){
+        if(this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched == this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished){
+            return JOB_DONE;
+        }
+    }else{
+        return JOB_ABORT;
+    }
+
+    return JOB_OK;
 }

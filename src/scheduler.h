@@ -44,3 +44,13 @@ public:
     double compute_priority(job * j);
     void manage_nodes_state();
 };
+
+class scheduler_SHORT : public scheduler
+{
+public:
+    scheduler_SHORT();
+    void queue_job(job * j);
+    void deploy_jobs(uint64_t t);
+    double compute_priority(job * j);
+    void manage_nodes_state();
+};
