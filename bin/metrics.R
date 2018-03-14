@@ -1,4 +1,5 @@
 # Plots different metrics from a scheduling log file
+library(gridExtra)
 
 #!/usr/bin/env Rscript
 args = commandArgs(trailingOnly=TRUE)
@@ -17,8 +18,9 @@ if(time_unit_symbol == "d") time_unit <- 60*60*24
 if(time_unit_symbol == "w") time_unit <- 60*60*24*7
 if(time_unit_symbol == "M") time_unit <- 60*60*24*7*4
 
-# Disable scientific notation
+# Disable scientific notation and limit decimal places
 options(scipen=999)
+ndigits <- 3
 
 # Function to scale jobs into time units
 scaled_throughput <- function(job_finish_times, makespan, time_unit){
@@ -106,6 +108,7 @@ while ( TRUE ) {
     if( grepl("SYS LOAD", line) == TRUE){
       ss_just_dollar <- strsplit(line, "\\$")
       ss__dollar_and_space <- strsplit(line, "\\s|\\$")
+      
       jobs_times <- c(jobs_times, as.numeric(ss_just_dollar[[1]][2]))
       queued_jobs <- c(queued_jobs, as.numeric(ss_just_dollar[[1]][4]))
       launched_jobs <- c(launched_jobs, as.numeric(ss_just_dollar[[1]][6]))
@@ -132,22 +135,40 @@ close(con)
 # Output results
 
 pdf(paste(path_mat, ".pdf", sep="")) 
+
+# Compute plotting points
+m_cost <- fill_scaled_stat_per_time(cost_per_second, jobs_times, makespan, time_unit)
+m_queued <- scaled_stat_per_time(queued_jobs, jobs_times, makespan, time_unit)
+m_launched <- scaled_stat_per_time(launched_jobs, jobs_times, makespan, time_unit)
+m_finished <- scaled_stat_per_time(finished_jobs, jobs_times, makespan, time_unit)
+m_aborted <- scaled_stat_per_time(aborted_jobs, jobs_times, makespan, time_unit)
+m_throughput <- scaled_throughput(job_finish_times, makespan, time_unit)
+
+# Plot general information
+
+info_table <- matrix(c(sum(m_cost[,2]), makespan, round(makespan / time_unit, digits=ndigits), round(length(job_finish_times)/(makespan/(time_unit)), digits=ndigits), round(sd(queued_jobs), digits=ndigits), round(mean(queued_jobs), digits=ndigits)), ncol=1, byrow=TRUE)
+
+colnames(info_table) <- c("Value")
+rownames(info_table) <- c("Total billing", "Makespan (s)", paste("Makespan (", paste(time_unit_symbol, "):")), paste("Average throughput ( jobs /", paste(time_unit_symbol, "): ")), "Standard deviation of queue time (s):", "Average queue time (s):")
+
+grid.table(as.table(info_table))
+
+print(paste("Total billing:", paste(sum(m_cost[,2]), "monetary units")))
+print(paste("Makespan ( s ):", makespan))
+print(paste("Makespan (", paste(time_unit_symbol, paste("):", makespan / time_unit))))
+print(paste("Average throughput ( jobs /", paste(time_unit_symbol, paste("): ", length(job_finish_times)/(makespan/(time_unit))))))
+print(paste("Standard deviation of queue time (s):", sd(queued_jobs)))
+print(paste("Average queue time (s):", mean(queued_jobs)))
+
+
 par(mfrow=c(3,2))
 
-#png(paste(path_mat, ".png", sep=""), width = length(data[,1]), height = length(data[,1]))
-
 # Plot throughput
-m_throughput <- scaled_throughput(job_finish_times, makespan, time_unit)
 plot(m_throughput[,1], m_throughput[,2], type = "l", main = paste("Throughput (jobs/", paste(time_unit_symbol, ")", sep = "")),
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Jobs finished")
 
 # Plot queued jobs
-m_queued <- scaled_stat_per_time(queued_jobs, jobs_times, makespan, time_unit)
-m_launched <- scaled_stat_per_time(launched_jobs, jobs_times, makespan, time_unit)
-m_finished <- scaled_stat_per_time(finished_jobs, jobs_times, makespan, time_unit)
-m_aborted <- scaled_stat_per_time(aborted_jobs, jobs_times, makespan, time_unit)
-
 plot(m_queued[,1], m_queued[,2], ylim = c(0, max(m_queued[,2], m_launched[,2], m_finished[,2])), type = "l", main = "Job status throughout time",
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Number of jobs")
@@ -161,7 +182,6 @@ lines(m_aborted[,1], m_aborted[,2], col = "green")
 hist(diff_submit_start_jobs, main = "Histogram of queueing time (m)", xlab = "Minutes spent in queue")
 
 # Plot cost per second
-m_cost <- fill_scaled_stat_per_time(cost_per_second, jobs_times, makespan, time_unit)
 plot(m_cost[,1], m_cost[,2], type = "l", main = paste("Cost throughout time ( c /", paste(time_unit_symbol, ")")),
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Cost in monetary units")
@@ -181,14 +201,6 @@ m_nodes <- fill_scaled_stat_per_time(nodes_usage, jobs_times, makespan, time_uni
 plot(m_nodes[,1], m_nodes[,2], ylim = c(0, maxnodes), type = "l", main = "Nodes usage (absolute)",
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Nodes online", col = "red")
-
-
-
-# Plot general information
-print(paste("Total billing:", paste(sum(m_cost[,2]), "monetary units")))
-print(paste("Makespan ( s ):", makespan))
-print(paste("Makespan (", paste(time_unit_symbol, paste("):", makespan / time_unit))))
-print(paste("Average throughput ( jobs /", paste(time_unit_symbol, paste("): ", length(job_finish_times)/(makespan/(time_unit))))))
 
 dev.off()
 
