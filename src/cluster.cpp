@@ -245,13 +245,14 @@ std::string cluster::print_cluster_usage(){
 JOBSTATE cluster::add_finished_core_and_check(job * j){ 
     this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished++;
 
-    if(j->real_exit_code == 0){
-        if(this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched == this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished){
-            return JOB_DONE;
-        }
-    }else{
-        return JOB_ABORT;
-    }
 
+    if(this->table_of_jobs_completition[j->job_internal_identifier].n_cores_launched == this->table_of_jobs_completition[j->job_internal_identifier].n_cores_finished){
+        if(j->real_exit_code == 0){
+            return JOB_DONE;
+        }else{
+            return JOB_ABORT;
+        }
+    }
+    
     return JOB_OK;
 }
