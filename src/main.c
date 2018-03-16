@@ -8,7 +8,6 @@
 #include "structs.h"
 
 static volatile int keep_running = 1;
-uint64_t n_threads = 4;
 log_recorder * LOG;
 
 bool MULTITHREADING = false;
@@ -41,17 +40,18 @@ void open_files(const char * m_conf, const char * workload, const char * log_out
 
 int main(int argc, char ** av){
 
-    if(argc != 7) terror("Error, use: ./schedulerSIM machine-conf.csv workload.csv out.log threads backfill=TRUE/FALSE multithreading=TRUE/FALSE");
+    if(argc != 6) terror("Error, use: ./schedulerSIM machine-conf.csv workload.csv out.log backfill=TRUE/FALSE multithreading=TRUE/FALSE");
 
     FILE * f_machine_conf = NULL, * f_workload = NULL, * f_log_out = NULL;
     open_files(av[1], av[2], av[3], &f_machine_conf, &f_workload, &f_log_out);
     LOG = new log_recorder(f_log_out);
-    n_threads = (uint64_t) atoi(av[4]);
-    if(strcmp(av[5], "TRUE") == 0) BACKFILL = true;
-    if(strcmp(av[6], "TRUE") == 0) MULTITHREADING = true;
+    if(strcmp(av[4], "TRUE") == 0) BACKFILL = true;
+    if(strcmp(av[5], "TRUE") == 0) MULTITHREADING = true;
 
-    scheduler_FIFO * sch_FIFO = new scheduler_FIFO();
-    cluster * system_cluster = new cluster(f_workload, sch_FIFO);
+    //scheduler_FIFO * sch = new scheduler_FIFO();
+    scheduler_SHORT * sch = new scheduler_SHORT();
+
+    cluster * system_cluster = new cluster(f_workload, sch);
     system_cluster->add_nodes_from_file(f_machine_conf);
     system_cluster->boot_all_nodes();
 

@@ -35,6 +35,8 @@ job * core::compute(uint64_t t){
                     return j;
                 }
 
+            }else{
+                return j;
             }
         }  
     }

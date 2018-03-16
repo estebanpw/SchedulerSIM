@@ -27,7 +27,6 @@ enum LOGTYPE { NODE_FOUND, NODE_ON, NODE_OFF, JOB_ENTER, JOB_START, JOB_FINISH, 
 
 extern bool MULTITHREADING;
 extern bool BACKFILL;
-extern uint64_t n_threads;
 
 
 
