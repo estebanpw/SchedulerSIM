@@ -40,7 +40,7 @@ void open_files(const char * m_conf, const char * workload, const char * log_out
 
 int main(int argc, char ** av){
 
-    if(argc != 6) terror("Error, use: ./schedulerSIM machine-conf.csv workload.csv out.log backfill=TRUE/FALSE multithreading=TRUE/FALSE");
+    if(argc < 7) terror("Error, use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <scheduler-type>");
 
     FILE * f_machine_conf = NULL, * f_workload = NULL, * f_log_out = NULL;
     open_files(av[1], av[2], av[3], &f_machine_conf, &f_workload, &f_log_out);
@@ -48,8 +48,15 @@ int main(int argc, char ** av){
     if(strcmp(av[4], "TRUE") == 0) BACKFILL = true;
     if(strcmp(av[5], "TRUE") == 0) MULTITHREADING = true;
 
-    //scheduler_FIFO * sch = new scheduler_FIFO();
-    scheduler_SHORT * sch = new scheduler_SHORT();
+    scheduler * sch = NULL;
+
+    if(strcmp(av[6], "FIFO") == 0) sch = new scheduler_FIFO();
+    if(strcmp(av[6], "SHORT") == 0) sch = new scheduler_SHORT();
+    if(strcmp(av[6], "PRIO") == 0){
+        if(argc != 12) terror("   # For PRIOrity type use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <scheduler-type> <w> <q> <e> <c> <m>");
+        sch = new scheduler_PRIORITY(atof(av[7]), atof(av[8]), atof(av[9]), atof(av[10]), atof(av[11])); // w q e c m
+    }
+    
 
     cluster * system_cluster = new cluster(f_workload, sch);
     system_cluster->add_nodes_from_file(f_machine_conf);

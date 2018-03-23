@@ -146,10 +146,10 @@ m_throughput <- scaled_throughput(job_finish_times, makespan, time_unit)
 
 # Plot general information
 
-info_table <- matrix(c(sum(m_cost[,2]), makespan, round(makespan / time_unit, digits=ndigits), round(length(job_finish_times)/(makespan/(time_unit)), digits=ndigits), round(sd(queued_jobs), digits=ndigits), round(mean(queued_jobs), digits=ndigits)), ncol=1, byrow=TRUE)
+info_table <- matrix(c(sum(m_cost[,2]), makespan, round(makespan / time_unit, digits=ndigits), round(length(job_finish_times)/(makespan/(time_unit)), digits=ndigits), round(sd(queued_jobs), digits=ndigits), round(mean(queued_jobs), digits=ndigits), round(median(queued_jobs), digits=ndigits)), ncol=1, byrow=TRUE)
 
 colnames(info_table) <- c("Value")
-rownames(info_table) <- c("Total billing", "Makespan (s)", paste("Makespan (", paste(time_unit_symbol, "):")), paste("Average throughput ( jobs /", paste(time_unit_symbol, "): ")), "Standard deviation of queue time (s):", "Average queue time (s):")
+rownames(info_table) <- c("Total billing", "Makespan (s)", paste("Makespan (", paste(time_unit_symbol, "):")), paste("Average throughput ( jobs /", paste(time_unit_symbol, "): ")), "Standard deviation of queue time (s):", "Average queue time (s):", "Median queue time (s):")
 
 grid.table(as.table(info_table))
 
@@ -159,6 +159,7 @@ print(paste("Makespan (", paste(time_unit_symbol, paste("):", makespan / time_un
 print(paste("Average throughput ( jobs /", paste(time_unit_symbol, paste("): ", length(job_finish_times)/(makespan/(time_unit))))))
 print(paste("Standard deviation of queue time (s):", sd(queued_jobs)))
 print(paste("Average queue time (s):", mean(queued_jobs)))
+print(paste("Median queue time (s):", median(queued_jobs)))
 
 
 par(mfrow=c(3,2))

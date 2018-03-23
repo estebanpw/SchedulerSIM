@@ -8,6 +8,7 @@
 #define QUANTUMS_PER_SEC 5
 #define QUANTUMS_IN_DAY 60*60*24*QUANTUMS_PER_SEC
 #define LOGIN_NODE_INTERVAL 5
+#define QUANTUMS_IN_FRAME QUANTUMS_PER_SEC*60*5 // Frames will have 5 minute duration
 
 #define MAX_THREADS_PER_CPU 6
 #define MAX_JOBS_TO_SHOW 10

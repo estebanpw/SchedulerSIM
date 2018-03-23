@@ -33,7 +33,7 @@ public:
     uint64_t    real_start_clocks;
     uint64_t    real_end_clocks;
     uint64_t    wall_time_clocks;
-    char         state;
+    char        state;
 
     double priority;
 

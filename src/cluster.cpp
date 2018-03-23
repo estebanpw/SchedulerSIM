@@ -75,7 +75,7 @@ int cluster::compute(){
             // Schedule it insert to job queue
             //this->broadcast(2, "job enter ", current_job->to_string().c_str());
             // Current mode is just FIFO
-            this->sch->queue_job(current_job);
+            this->sch->queue_job(current_job, curr_clock);
             this->t_total++;            
             LOG->record(4, JOB_ENTER, this->syscl->get_time(), this->sch->get_queued_jobs_size(), current_job->to_string().c_str());
             LOG->record(7, SYS_USE, this->syscl->get_time(), this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
