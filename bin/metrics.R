@@ -113,7 +113,7 @@ while ( TRUE ) {
       queued_jobs <- c(queued_jobs, as.numeric(ss_just_dollar[[1]][4]))
       launched_jobs <- c(launched_jobs, as.numeric(ss_just_dollar[[1]][6]))
       finished_jobs <- c(finished_jobs, as.numeric(ss_just_dollar[[1]][8]))
-      aborted_jobs <- c(finished_jobs, as.numeric(ss_just_dollar[[1]][10]))      
+      aborted_jobs <- c(aborted_jobs, as.numeric(ss_just_dollar[[1]][10]))      
       cost_per_second <- c(cost_per_second, as.numeric(ss__dollar_and_space[[1]][32]))
       
       cpu_usage <- c(cpu_usage, as.numeric(strsplit(ss__dollar_and_space[[1]][26], "%")[[1]][1]))
