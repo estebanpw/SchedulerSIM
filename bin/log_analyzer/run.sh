@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Version of metrics.R script. This generates temporal files with a C program and then metrics_plot.R generates a pdf with the plots
+# USAGE: ./run <input_file> <output_file> <time_unit>
 
 input_file=$1
 output_file=$2
