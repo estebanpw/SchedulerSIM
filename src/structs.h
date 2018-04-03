@@ -23,6 +23,22 @@
 #define INIT_MINUTE 0
 #define INIT_SECOND 0
 
+#define SECOND  1
+#define MINUTE  60
+#define HOUR    60*60
+#define DAY     60*60*24
+#define WEEK    60*60*24*7
+#define MONTH   60*60*24*7*4
+
+#define READ_BUFFER 5000000
+#define ARRAY_SIZE  100000
+#define LINE_BUFFER 500
+
+#define COLUMNS_SCALED_THROUGHPUT   2
+#define JOB_FINISHED_LENGTH         14
+#define SYS_LOAD_LENGTH             10
+#define SYSTEM_OFF_LENGTH           12
+
 enum JOBSTATE { JOB_OK, JOB_DONE, JOB_ABORT };
 enum LOGTYPE { NODE_FOUND, NODE_ON, NODE_OFF, JOB_ENTER, JOB_START, JOB_FINISH, JOB_ABORTED, SYS_USE, SHUTDOWN, DISPLAY_DATE, QUEUE_STATUS, QUEUE_ROW, QUEUE_END, QUEUE_ETC };
 
@@ -61,3 +77,9 @@ typedef struct picasso_row{
     int         exit_code;
 
 } Picasso_row;
+
+typedef struct uint64_t_array {
+    uint64_t *array;
+    uint64_t i;
+    uint64_t number_of_reallocs;
+} uint64_t_array;
