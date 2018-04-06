@@ -23,18 +23,22 @@ bool scheduler::job_fits_in_node(job * j, node * n, uint64_t t){
 }
 
 void scheduler::assign_grain_to_backfill(uint64_t frames){
+    /*
     this->backfill_frames = frames;
     this->expected_CPU_load = (uint64_t *) std::calloc(frames, sizeof(uint64_t));
     if(this->expected_CPU_load == NULL) terror("Could not allocate backfill CPU windows");
     this->expected_MEM_load = (uint64_t *) std::calloc(frames, sizeof(uint64_t));
     if(this->expected_MEM_load == NULL) terror("Could not allocate backfill MEM windows");
+    */
 }
 
 void add_job_to_expected_load(job * j){
+    /*
     for(uint64_t i=0; i<j->wall_time_clocks/QUANTUMS_IN_FRAME && i<this->backfill_frames ; i++){
         this->expected_CPU_load[(this->modulus + i) % this->backfill_frames] += j->CPU_requested:
         this->expected_MEM_load[(this->modulus + i) % this->backfill_frames] += j->MEM_requested;
     }
+    */
 }
 
 
