@@ -5,11 +5,11 @@ BIN=../bin
 
 all: scheduler metrics
 
-scheduler: main.c
-	$(CXX) $(CFLAGS) log-recorder.cpp main.c common-functions.c io-functions.c sysclock.cpp cluster.cpp node.cpp -lpthread core.cpp job.cpp scheduler.cpp -o $(BIN)/scheduler
+scheduler: main.cpp
+	$(CXX) $(CFLAGS) log-recorder.cpp main.cpp common-functions.cpp io-functions.cpp sysclock.cpp cluster.cpp node.cpp -lpthread core.cpp job.cpp scheduler.cpp -o $(BIN)/scheduler
 
 metrics: log_analyzer.cpp
-	$(CXX) $(CFLAGS) log_analyzer.cpp common-functions.c -o $(BIN)/log_analyzer 
+	$(CXX) $(CFLAGS) log_analyzer.cpp common-functions.cpp -o $(BIN)/log_analyzer 
 
 clean:
 	rm -rf $(BIN)/scheduler
