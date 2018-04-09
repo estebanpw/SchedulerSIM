@@ -67,6 +67,12 @@ void scheduler_FIFO::manage_nodes_state(){
         
         // Basic policy: let them all on
         (*it)->how_the_scheduler_wants_it = true;
+
+        // Policy 2: Off if system not busy
+        if ((*it)->is_system_busy == 0){
+            (*it)->how_the_scheduler_wants_it = false;
+        }
+        // (double) j->MEM_requested <= n->get_free_memory()
     }
 }
 
@@ -115,6 +121,7 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
             if(job_fits_in_node(jobit, *it, t)){
                 jobit->state = 'R';
                 (*it)->insert_job(jobit);
+                (*it)->how_the_scheduler_wants_it = true;
                 jobit->real_start_clocks = t;
                 this->jobs_queue->erase(this->jobs_queue->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
