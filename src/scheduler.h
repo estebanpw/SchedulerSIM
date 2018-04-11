@@ -2,6 +2,7 @@
 
 #include "structs.h"
 #include "node.h"
+#include "policy.h"
 #include "sysclock.h"
 #include "common-functions.h"
 #include "io-functions.h"
@@ -22,6 +23,7 @@ protected:
     uint64_t backfill_frames = 0;
     std::vector<node *> * nodes;
     std::vector<load_on_node *> load_in_nodes;
+    policy current_policy;
     
     uint64_t * expected_CPU_load;
     uint64_t * expected_MEM_load;
@@ -36,6 +38,7 @@ public:
     virtual uint64_t get_queued_jobs_size() = 0;
     virtual job * get_next_job() = 0;
     virtual void pop_next_job() = 0;
+    void manage_nodes_state();
     bool job_fits_in_node(job * j, node * n, uint64_t t);
     void assign_grain_to_backfill(uint64_t frames);
     void set_nodes_list(std::vector<node *> * nodes);
@@ -52,7 +55,6 @@ public:
     void queue_job(job * j, uint64_t t);
     void deploy_jobs(uint64_t t);
     double compute_priority(job * j, uint64_t t);
-    void manage_nodes_state();
     uint64_t get_queued_jobs_size(){ return this->jobs_queue->size(); }
     job * get_next_job();
     void pop_next_job();
@@ -74,7 +76,6 @@ public:
     void queue_job(job * j, uint64_t t);
     void deploy_jobs(uint64_t t);
     double compute_priority(job * j, uint64_t t);
-    void manage_nodes_state();
     uint64_t get_queued_jobs_size(){ return jobs_set->size(); }
     job * get_next_job();
     void pop_next_job();
@@ -98,7 +99,6 @@ public:
     void deploy_jobs(uint64_t t);
     double compute_priority(job * j, uint64_t t);
     void recompute_priorities_queue(uint64_t t);
-    void manage_nodes_state();
     uint64_t get_queued_jobs_size(){ return jobs_set->size(); }
     job * get_next_job();
     void pop_next_job();

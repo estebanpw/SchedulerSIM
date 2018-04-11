@@ -22,6 +22,13 @@ bool scheduler::job_fits_in_node(job * j, node * n, uint64_t t){
     return false;
 }
 
+void scheduler::manage_nodes_state(){
+    // Apply Policy for power 
+    for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+        current_policy.manage_node_state(it);
+    }
+}
+
 void scheduler::assign_grain_to_backfill(uint64_t frames){
     /*
     this->backfill_frames = frames;
@@ -58,22 +65,6 @@ void scheduler_FIFO::pop_next_job(){
 
 double scheduler_FIFO::compute_priority(job * j, uint64_t t){
     return this->jobs_queue->size();
-}
-
-void scheduler_FIFO::manage_nodes_state(){
-    
-    for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-        // Policies for power 
-        
-        // Basic policy: let them all on
-        (*it)->how_the_scheduler_wants_it = true;
-
-        // Policy 2: Off if system not busy
-        if ((*it)->is_system_busy == 0){
-            (*it)->how_the_scheduler_wants_it = false;
-        }
-        // (double) j->MEM_requested <= n->get_free_memory()
-    }
 }
 
 void scheduler_FIFO::queue_job(job * j, uint64_t t){
@@ -121,7 +112,6 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
             if(job_fits_in_node(jobit, *it, t)){
                 jobit->state = 'R';
                 (*it)->insert_job(jobit);
-                (*it)->how_the_scheduler_wants_it = true;
                 jobit->real_start_clocks = t;
                 this->jobs_queue->erase(this->jobs_queue->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
