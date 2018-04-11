@@ -2,7 +2,7 @@
 
 // Basic Policy: All On
 
-bool policy_always_on::compare_two_node_loads(load_on_node * a, load_on_node * b){
+bool policy_always_on::compare_node_load(load_on_node * a, load_on_node * b){
     return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load());
 }
 
@@ -12,9 +12,12 @@ void policy_always_on::manage_node_state(node * n){
 
 
 // Basic Policy: All On
-bool policy_off_if_not_busy::compare_two_node_loads(load_on_node * a, load_on_node * b){
-    if 
-    return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load());
+bool policy_off_if_not_busy::compare_node_load(load_on_node * a, load_on_node * b){
+    if (a->at_node->efficient_get_node_CPU_load() == b->at_node->efficient_get_node_CPU_load()){
+        return (a->at_node->get_free_memory() > b->at_node->get_free_memory())
+    } else {
+        return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load());
+    }
 }
 
 void policy_off_if_not_busy::manage_node_state(node * n){

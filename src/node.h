@@ -74,6 +74,6 @@ public:
     uint64_t get_id(){ return this->id_node; }
 
     // For descending sort (more busy nodes first)
-    static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load()); }
+    // static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load()); }
     static void * compute_pthreaded(void * a);
 };

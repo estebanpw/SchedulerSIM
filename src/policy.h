@@ -22,7 +22,7 @@ struct load_on_node{
 class policy
 {
 public:
-    virtual bool compare_two_node_loads(load_on_node * a, load_on_node * b) = 0;
+    virtual bool compare_node_load(load_on_node * a, load_on_node * b) = 0;
     virtual void manage_node_state(node * n) = 0;
     void want_node_off(node * n) { (*n)->how_the_scheduler_wants_it = false; }
     void want_node_on(node * n) { (*n)->how_the_scheduler_wants_it = true; }
@@ -32,7 +32,7 @@ public:
 class policy_always_on : public policy
 {
 public:
-    bool compare_two_node_loads(load_on_node * a, load_on_node * b);
+    bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n);
 }
 
@@ -40,6 +40,6 @@ public:
 class policy_off_if_not_busy : public policy
 {
 public:
-    bool compare_two_node_loads(load_on_node * a, load_on_node * b);
+    bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n)
 }
