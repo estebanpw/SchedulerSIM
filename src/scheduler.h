@@ -38,7 +38,7 @@ public:
     virtual job * get_next_job() = 0;
     virtual void pop_next_job() = 0;
     void manage_nodes_state();
-    void deploy_jobs(uint64_t t);
+    virtual void deploy_jobs(uint64_t t) = 0;
     bool job_fits_in_node(job * j, node * n, uint64_t t);
     void assign_grain_to_backfill(uint64_t frames);
     void add_job_to_expected_load(job * j);
@@ -55,6 +55,7 @@ private:
 public:
     scheduler_FIFO(policy * p);
     void queue_job(job * j, uint64_t t);
+    void deploy_jobs(uint64_t t);
     double compute_priority(job * j, uint64_t t);
     uint64_t get_queued_jobs_size(){ return this->jobs_queue->size(); }
     job * get_next_job();
@@ -75,6 +76,7 @@ private:
 public:
     scheduler_SHORT(policy * p);
     void queue_job(job * j, uint64_t t);
+    void deploy_jobs(uint64_t t);
     double compute_priority(job * j, uint64_t t);
     uint64_t get_queued_jobs_size(){ return jobs_set->size(); }
     job * get_next_job();
@@ -96,6 +98,7 @@ private:
 public:
     scheduler_PRIORITY(policy * p, double w, double q, double e, double c, double m);
     void queue_job(job * j, uint64_t t);
+    void deploy_jobs(uint64_t t);
     double compute_priority(job * j, uint64_t t);
     void recompute_priorities_queue(uint64_t t);
     uint64_t get_queued_jobs_size(){ return jobs_set->size(); }
