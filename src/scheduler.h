@@ -34,7 +34,6 @@ public:
     //scheduler(std::vector<node *> * nodes);    
     virtual void queue_job(job * j, uint64_t t) = 0;
     virtual double compute_priority(job * j, uint64_t t) = 0;
-    virtual void manage_nodes_state() = 0;
     virtual uint64_t get_queued_jobs_size() = 0;
     virtual job * get_next_job() = 0;
     virtual void pop_next_job() = 0;
@@ -42,7 +41,9 @@ public:
     void deploy_jobs(uint64_t t);
     bool job_fits_in_node(job * j, node * n, uint64_t t);
     void assign_grain_to_backfill(uint64_t frames);
+    void add_job_to_expected_load(job * j);
     void set_nodes_list(std::vector<node *> * nodes);
+    
 };
 
 

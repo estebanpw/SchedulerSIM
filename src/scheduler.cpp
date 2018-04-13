@@ -25,7 +25,7 @@ bool scheduler::job_fits_in_node(job * j, node * n, uint64_t t){
 void scheduler::manage_nodes_state(){
     // Apply Policy for power 
     for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-        (*current_policy)->manage_node_state(it);
+        current_policy->manage_node_state(it);
     }
 }
 
@@ -49,7 +49,7 @@ void scheduler::add_job_to_expected_load(job * j){
 }
 
 void scheduler::deploy_jobs(uint64_t t){
-    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), (*current_policy)->compare_node_load);
+    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), this->current_policy->compare_node_load);
     
     if(BACKFILL == true){
         
