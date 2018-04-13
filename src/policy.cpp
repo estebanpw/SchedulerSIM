@@ -20,7 +20,7 @@ bool policy_ON_WHEN_BUSY::compare_node_load(load_on_node * a, load_on_node * b){
 }
 
 void policy_ON_WHEN_BUSY::manage_node_state(node * n){
-    if((*n)->efficient_get_node_CPU_load == 0 && (*n)->get_node_MEM_load == 0){
+    if(n->efficient_get_node_CPU_load == 0 && n->get_node_MEM_load == 0){
         want_node_off(n);
     } else {
         want_node_on(n);

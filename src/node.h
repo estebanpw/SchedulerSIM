@@ -20,11 +20,6 @@ typedef struct{
 
 class node;
 
-struct load_on_node{
-    node * at_node;
-    load_on_node(node * n): at_node(n) {}
-};
-
 class node
 {
 private:

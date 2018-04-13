@@ -24,9 +24,9 @@ class policy
 public:
     virtual bool compare_node_load(load_on_node * a, load_on_node * b) = 0;
     virtual void manage_node_state(node * n) = 0;
-    void want_node_off(node * n) { (*n)->how_the_scheduler_wants_it = false; }
-    void want_node_on(node * n) { (*n)->how_the_scheduler_wants_it = true; }
-}
+    void want_node_off(node * n) { n->how_the_scheduler_wants_it = false; }
+    void want_node_on(node * n) { n->how_the_scheduler_wants_it = true; }
+};
 
 // Basic Policy: All On
 class policy_ALWAYS_ON : public policy
@@ -34,12 +34,12 @@ class policy_ALWAYS_ON : public policy
 public:
     bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n);
-}
+};
 
 // Basic Policy: All On
 class policy_ON_WHEN_BUSY : public policy
 {
 public:
     bool compare_node_load(load_on_node * a, load_on_node * b);
-    void manage_node_state(node * n)
-}
+    void manage_node_state(node * n);
+};
