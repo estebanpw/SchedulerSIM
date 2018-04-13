@@ -1,2 +1,4 @@
 ### Files
 .vscode/
+bin/scheduler
+bin/log_analyzer

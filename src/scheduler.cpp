@@ -49,7 +49,7 @@ void scheduler::add_job_to_expected_load(job * j){
 }
 
 void scheduler::deploy_jobs(uint64_t t){
-    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), this->current_policy->compare_node_load);
+    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), policy::compare_two_node_loads);
     
     if(BACKFILL == true){
         
