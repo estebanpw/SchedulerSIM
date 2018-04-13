@@ -29,7 +29,7 @@ public:
 }
 
 // Basic Policy: All On
-class policy_always_on : public policy
+class policy_ALWAYS_ON : public policy
 {
 public:
     bool compare_node_load(load_on_node * a, load_on_node * b);
@@ -37,7 +37,7 @@ public:
 }
 
 // Basic Policy: All On
-class policy_off_if_not_busy : public policy
+class policy_ON_WHEN_BUSY : public policy
 {
 public:
     bool compare_node_load(load_on_node * a, load_on_node * b);

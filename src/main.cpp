@@ -40,7 +40,7 @@ void open_files(const char * m_conf, const char * workload, const char * log_out
 
 int main(int argc, char ** av){
 
-    if(argc < 7) terror("Error, use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <scheduler-type>");
+    if(argc < 8) terror("Error, use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <policy> <scheduler-type>");
 
     FILE * f_machine_conf = NULL, * f_workload = NULL, * f_log_out = NULL;
     open_files(av[1], av[2], av[3], &f_machine_conf, &f_workload, &f_log_out);
@@ -48,13 +48,17 @@ int main(int argc, char ** av){
     if(strcmp(av[4], "TRUE") == 0) BACKFILL = true;
     if(strcmp(av[5], "TRUE") == 0) MULTITHREADING = true;
 
+    policy * pol = NULL;
     scheduler * sch = NULL;
 
-    if(strcmp(av[6], "FIFO") == 0) sch = new scheduler_FIFO();
-    if(strcmp(av[6], "SHORT") == 0) sch = new scheduler_SHORT();
-    if(strcmp(av[6], "PRIO") == 0){
-        if(argc != 12) terror("   # For PRIOrity type use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <scheduler-type> <w> <q> <e> <c> <m>");
-        sch = new scheduler_PRIORITY(atof(av[7]), atof(av[8]), atof(av[9]), atof(av[10]), atof(av[11])); // w q e c m
+    if(strcmp(av[6], "ALWAYS_ON") == 0) pol = new policy_ALWAYS_ON();
+    if(strcmp(av[6], "ON_WHEN_BUSY") == 0) pol = new policy_ON_WHEN_BUSY();
+
+    if(strcmp(av[7], "FIFO") == 0) sch = new scheduler_FIFO(pol);
+    if(strcmp(av[7], "SHORT") == 0) sch = new scheduler_SHORT(pol);
+    if(strcmp(av[7], "PRIO") == 0){
+        if(argc != 13) terror("   # For PRIOrity type use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <policy> <scheduler-type> <w> <q> <e> <c> <m> ");
+        sch = new scheduler_PRIORITY(pol, atof(av[8]), atof(av[9]), atof(av[10]), atof(av[11]), atof(av[12])); // w q e c m
     }
     
 

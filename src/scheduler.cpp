@@ -25,7 +25,7 @@ bool scheduler::job_fits_in_node(job * j, node * n, uint64_t t){
 void scheduler::manage_nodes_state(){
     // Apply Policy for power 
     for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-        current_policy.manage_node_state(it);
+        (*current_policy)->manage_node_state(it);
     }
 }
 
@@ -49,7 +49,7 @@ void scheduler::add_job_to_expected_load(job * j){
 }
 
 void scheduler::deploy_jobs(uint64_t t){
-    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), current_policy.compare_node_load);
+    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), (*current_policy)->compare_node_load);
     
     if(BACKFILL == true){
         
@@ -100,7 +100,8 @@ void scheduler::deploy_jobs(uint64_t t){
 
 
 // ****** Start Scheduler FIFO nodes online 24/7 ****************************************************************************
-scheduler_FIFO::scheduler_FIFO(){
+scheduler_FIFO::scheduler_FIFO(policy * p){
+    this->current_policy = p;
     this->total_jobs_queued = 0;
     this->jobs_queue = new std::vector<job *>();
 }
@@ -124,62 +125,14 @@ void scheduler_FIFO::queue_job(job * j, uint64_t t){
     this->jobs_queue->push_back(j);
 }
 
-
-void scheduler_FIFO::deploy_jobs(uint64_t t){
-    // Sort nodes according to CPU load
-    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), node::compare_two_node_loads);
-    
-    if(BACKFILL == true){
-        std::vector<uint64_t> remove_jobs;
-        uint64_t kill_id = 0;
-        
-        for(std::vector<job *>::iterator jobit = this->jobs_queue->begin() ; jobit != this->jobs_queue->end(); ++jobit){
-            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-                if(job_fits_in_node(*jobit, *it, t)){
-                    (*jobit)->state = 'R';
-                    (*it)->insert_job(*jobit);
-                    remove_jobs.push_back(kill_id);
-                    //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
-                    (*jobit)->real_start_clocks = t;
-                    LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
-                    break;
-                }else{
-                    //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
-                }
-            }
-            ++kill_id;
-        }
-        uint64_t amount_removed = 0;
-        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
-            this->jobs_queue->erase(this->jobs_queue->begin()+(*rem_job) - amount_removed);
-            amount_removed++;
-        }   
-    }else{
-        // No backfill
-                
-        job * jobit = this->jobs_queue->front();
-        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-            if(job_fits_in_node(jobit, *it, t)){
-                jobit->state = 'R';
-                (*it)->insert_job(jobit);
-                jobit->real_start_clocks = t;
-                this->jobs_queue->erase(this->jobs_queue->begin());
-                LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
-                break;
-            }
-        }
-    }
-}
-
-
-
 // ****** End Scheduler FIFO nodes online 24/7 ****************************************************************************
 
 
 
 // ****** Start Scheduler Short-first nodes online 24/7 ****************************************************************************
 
-scheduler_SHORT::scheduler_SHORT(){
+scheduler_SHORT::scheduler_SHORT(policy * p){
+    this->current_policy = p;
     this->total_jobs_queued = 0;
     this->jobs_set = new std::multiset<job *, class_comp_short_jobs>();
 }
@@ -203,63 +156,13 @@ void scheduler_SHORT::queue_job(job * j, uint64_t t){
     this->jobs_set->insert(j);
 }
 
-void scheduler_SHORT::deploy_jobs(uint64_t t){
-    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), node::compare_two_node_loads);
-    
-    if(BACKFILL == true){
-        
-        std::vector<uint64_t> remove_jobs;
-        uint64_t kill_id = 0;
-        
-        for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
-            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-                if(job_fits_in_node(*jobit, *it, t)){
-                    (*jobit)->state = 'R';
-                    (*it)->insert_job(*jobit);
-                    remove_jobs.push_back(kill_id);
-                    //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
-                    (*jobit)->real_start_clocks = t;
-                    LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
-                    break;
-                }else{
-                    //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
-                }
-            }
-            ++kill_id;
-        }
-        uint64_t amount_removed = 0;
-        std::multiset<job *>:: iterator it;
-        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){   
-            it = this->jobs_set->begin();
-            std::advance(it, (*rem_job) - amount_removed);
-            this->jobs_set->erase(it);
-            amount_removed++;
-        }
-        
-    }else{
-        // No backfill
-                
-        job * jobit = (*this->jobs_set->begin());
-        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-            if(job_fits_in_node(jobit, *it, t)){
-                jobit->state = 'R';
-                (*it)->insert_job(jobit);
-                jobit->real_start_clocks = t;
-                this->jobs_set->erase(this->jobs_set->begin());
-                LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
-                break;
-            }
-        }
-    }
-}
-
-
 // ****** End scheduler_SHORT nodes online 24/7 ****************************************************************************
 
 
 // ****** Start Scheduler Priority nodes online 24/7 ****************************************************************************
 
-scheduler_PRIORITY::scheduler_PRIORITY(double w, double q, double e, double c, double m){
+scheduler_PRIORITY::scheduler_PRIORITY(policy * p, double w, double q, double e, double c, double m){
+    this->current_policy = p;
     this->total_jobs_queued = 0;
     this->w = w;
     this->q = q;
