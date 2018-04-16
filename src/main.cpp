@@ -2,6 +2,7 @@
 #include <signal.h>
 #include "io-functions.h"
 #include "cluster.h"
+#include "policy.h"
 #include "sysclock.h"
 #include "log-recorder.h"
 #include "common-functions.h"

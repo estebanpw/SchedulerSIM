@@ -18,13 +18,17 @@ class policy;
     load_on_node(node * n): at_node(n) {}
 };
 */
+
+typedef bool (*fptr)(load_on_node *, load_on_node *);
+
 // Abstract Policy
 class policy
 {
 public:
     //policy(){ global_policy = this) };
-    virtual bool compare_node_load(load_on_node * a, load_on_node * b) = 0;
+    //virtual bool compare_node_load(load_on_node * a, load_on_node * b);
     virtual void manage_node_state(node * n) = 0;
+    fptr get_compare_func();
     void want_node_off(node * n) { n->how_the_scheduler_wants_it = false; }
     void want_node_on(node * n) { n->how_the_scheduler_wants_it = true; }
 
@@ -35,8 +39,8 @@ public:
 class policy_ALWAYS_ON : public policy
 {
 public:
-    //policy_ALWAYS_ON();
-    bool compare_node_load(load_on_node * a, load_on_node * b);
+    // policy_ALWAYS_ON():
+    static bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n);
 };
 
@@ -45,16 +49,6 @@ class policy_ON_WHEN_BUSY : public policy
 {
 public:
     //policy_ON_WHEN_BUSY();
-    bool compare_node_load(load_on_node * a, load_on_node * b);
+    static bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n);
-};
-
-// Needed to encapsulate the compare function
-class class_comp_node_load
-{
-private:
-    policy * current_policy = NULL;
-public:
-    class_comp_node_load(policy * p): current_policy(p) {}
-    bool operator() (load_on_node * n1, load_on_node * n2) const { return (this->current_policy->compare_node_load(n1,n2)); }
 };

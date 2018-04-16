@@ -76,9 +76,7 @@ void scheduler_FIFO::queue_job(job * j, uint64_t t){
 
 void scheduler_FIFO::deploy_jobs(uint64_t t){
     // Sort nodes according to CPU load
-    class_comp_node_load * compare_node_load = new class_comp_node_load(this->current_policy);
-    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), compare_node_load);
-    delete(compare_node_load);
+    std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), this->current_policy->get_compare_func());
 
     if(BACKFILL == true){
         std::vector<uint64_t> remove_jobs;
