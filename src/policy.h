@@ -27,8 +27,8 @@ class policy
 public:
     //policy(){ global_policy = this) };
     //virtual bool compare_node_load(load_on_node * a, load_on_node * b);
-    virtual void manage_node_state(node * n) = 0;
-    fptr get_compare_func();
+    virtual void manage_node_state(node * n, uint64_t t) = 0;
+    virtual fptr get_compare_func() = 0;
     void want_node_off(node * n) { n->how_the_scheduler_wants_it = false; }
     void want_node_on(node * n) { n->how_the_scheduler_wants_it = true; }
 
@@ -41,7 +41,8 @@ class policy_ALWAYS_ON : public policy
 public:
     // policy_ALWAYS_ON():
     static bool compare_node_load(load_on_node * a, load_on_node * b);
-    void manage_node_state(node * n);
+    void manage_node_state(node * n, uint64_t t);
+    fptr get_compare_func();
 };
 
 // Basic Policy: All On
@@ -50,5 +51,6 @@ class policy_ON_WHEN_BUSY : public policy
 public:
     //policy_ON_WHEN_BUSY();
     static bool compare_node_load(load_on_node * a, load_on_node * b);
-    void manage_node_state(node * n);
+    void manage_node_state(node * n, uint64_t t);
+    fptr get_compare_func();
 };

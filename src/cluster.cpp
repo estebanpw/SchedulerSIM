@@ -94,7 +94,7 @@ int cluster::compute(){
     if(curr_clock % (LOGIN_NODE_INTERVAL*QUANTUMS_PER_SEC) == 0 && this->sch->get_queued_jobs_size() > 0){
         
         this->sch->deploy_jobs(curr_clock);
-        this->sch->manage_nodes_state();
+        this->sch->manage_nodes_state(curr_clock);
 
     }
 
@@ -104,10 +104,10 @@ int cluster::compute(){
         // Power off/on nodes as requested 
         if((*it)->can_I_use_it(curr_clock) && (*it)->get_state() == true && (*it)->how_the_scheduler_wants_it == false){
             // Turn off 
-            (*it)->turn_off(curr_clock);
+            (*it)->turn_off(curr_clock); this->broadcast(1, "!## --- TURNING OFF NODE");
 
         }else if(!(*it)->can_I_use_it(curr_clock) && (*it)->get_state() == false && (*it)->how_the_scheduler_wants_it == true){
-            (*it)->turn_on(curr_clock);
+            (*it)->turn_on(curr_clock);  this->broadcast(1, "### --- TURNING ON NODE");
         }
 
         // Actual computation
@@ -129,6 +129,7 @@ int cluster::compute(){
                 LOG->record(8, JOB_FINISH, curr_time, this->sch->get_queued_jobs_size(), j->real_submit_clocks, j->real_start_clocks, j->real_end_clocks,
                 j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
                 LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
+            this->sch->get_policy()->manage_node_state(*it, curr_clock);  this->broadcast(1, "### --- MANAGE NODE FINISH");
             }else if(js == JOB_ABORT){
                 (*it)->free_memory_from_process(j->MEM_requested);
                 j->real_end_clocks = curr_clock;
@@ -136,8 +137,8 @@ int cluster::compute(){
                 LOG->record(8, JOB_ABORTED, curr_time, this->sch->get_queued_jobs_size(), j->real_submit_clocks, j->real_start_clocks, j->real_end_clocks,
                 j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
                 LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
+            this->sch->get_policy()->manage_node_state(*it, curr_clock);  this->broadcast(1, "### --- MANAGE NODE ABORTED");
             }
-            
         }
         
         delete finished_jobs;

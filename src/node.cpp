@@ -24,7 +24,7 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
     this->delay_clocks = 0;
     this->efficient_t_jobs = 0;
 
-    this->how_the_scheduler_wants_it = true;
+    this->how_the_scheduler_wants_it = false;
     this->time_online = 0;
     this->time_offline = 0;
 }

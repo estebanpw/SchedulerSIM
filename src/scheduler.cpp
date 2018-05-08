@@ -22,10 +22,10 @@ bool scheduler::job_fits_in_node(job * j, node * n, uint64_t t){
     return false;
 }
 
-void scheduler::manage_nodes_state(){
+void scheduler::manage_nodes_state(uint64_t curr_clock){
     // Apply Policy for power 
     for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-        current_policy->manage_node_state(*it);
+        current_policy->manage_node_state(*it, curr_clock);
     }
 }
 
@@ -105,8 +105,8 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
         }   
     }else{
         // No backfill
-                
         job * jobit = this->jobs_queue->front();
+
         for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
             if(job_fits_in_node(jobit, *it, t)){
                 jobit->state = 'R';
@@ -115,6 +115,9 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
                 this->jobs_queue->erase(this->jobs_queue->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
                 break;
+            }
+            else if(!(*it)->get_state()){
+                this->current_policy->want_node_on(*it); break;
             }
         }
     }
@@ -196,6 +199,9 @@ void scheduler_SHORT::deploy_jobs(uint64_t t){
                 this->jobs_set->erase(this->jobs_set->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
                 break;
+            }
+            else if(!(*it)->get_state()){
+                this->current_policy->want_node_on(*it); break;
             }
         }
     }

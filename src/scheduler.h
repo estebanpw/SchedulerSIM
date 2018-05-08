@@ -37,13 +37,13 @@ public:
     virtual uint64_t get_queued_jobs_size() = 0;
     virtual job * get_next_job() = 0;
     virtual void pop_next_job() = 0;
-    void manage_nodes_state();
+    void manage_nodes_state(uint64_t t);
     virtual void deploy_jobs(uint64_t t) = 0;
     bool job_fits_in_node(job * j, node * n, uint64_t t);
     void assign_grain_to_backfill(uint64_t frames);
     void add_job_to_expected_load(job * j);
     void set_nodes_list(std::vector<node *> * nodes);
-    
+    policy * get_policy() { return current_policy; }
 };
 
 
