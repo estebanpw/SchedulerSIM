@@ -41,7 +41,7 @@ int main(int argc, char ** argv){
 	uint64_t_array cpu_usage;
 	uint64_t_array mem_usage;
 	uint64_t_array nodes_usage;
-	uint64_t_array diff_submit_start_jobs;
+	double_array diff_submit_start_jobs;
 
 	job_finish_times.array 			= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
 	launched_jobs.array 			= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
@@ -53,7 +53,7 @@ int main(int argc, char ** argv){
 	cpu_usage.array 				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
 	mem_usage.array 				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
 	nodes_usage.array 				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
-	diff_submit_start_jobs.array 	= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
+	diff_submit_start_jobs.array 	= (double*) malloc(ARRAY_SIZE * sizeof(double));
 
 	job_finish_times.i = 0;
 	launched_jobs.i = 0;
@@ -134,13 +134,13 @@ int main(int argc, char ** argv){
 		} else if (!strcmp(header_buffer, "[JOB LAUNCHED]")) {
 			if (diff_submit_start_jobs.number_of_reallocs * ARRAY_SIZE == diff_submit_start_jobs.i) {
 				diff_submit_start_jobs.number_of_reallocs++;
-				diff_submit_start_jobs.array = (uint64_t*) realloc(diff_submit_start_jobs.array, 
-					diff_submit_start_jobs.number_of_reallocs * ARRAY_SIZE * sizeof(uint64_t));
+				diff_submit_start_jobs.array = (double*) realloc(diff_submit_start_jobs.array, 
+					diff_submit_start_jobs.number_of_reallocs * ARRAY_SIZE * sizeof(double));
 				if (diff_submit_start_jobs.array == NULL) terror("Could not reallocate diff_submit_start_jobs array");
 			}
 			job_launched_aux_string = strstr(line_buffer, "SUBMIT");
 			sscanf(job_launched_aux_string, "%*[^:]:%" PRIu64 "%*[^:]:%" PRIu64 "%*[^\n]\n", &submit, &start);
-			diff_submit_start_jobs.array[diff_submit_start_jobs.i++] = (start-submit)/60;
+			diff_submit_start_jobs.array[diff_submit_start_jobs.i++] = (double)(start-submit)/60;
 		} else {
 			header_buffer[SYSTEM_OFF_LENGTH] = '\0';
 			if (!strcmp(header_buffer, "[SYSTEM OFF]")) {
@@ -205,8 +205,8 @@ int main(int argc, char ** argv){
 	output = fopen64(strcat(strcpy(aux, output_namefile), "_m_diff_submit_start_jobs"), "wt");
 	if(output==NULL) terror("Could not open output file");
 	for (i = 0; i < diff_submit_start_jobs.i; i++) {
-		fprintf(output, "%" PRIu64, diff_submit_start_jobs.array[i]);
-		if (i < queued_jobs.i - 1) {
+		fprintf(output, "%lf", diff_submit_start_jobs.array[i]);
+		if (i < diff_submit_start_jobs.i - 1) {
 			fprintf(output, ",");
 		}
 	}
@@ -291,7 +291,7 @@ void scaled_stat_per_time(uint64_t_array stat_object, uint64_t_array time_object
 
 	for (i = 0; i < stat_object.i; i++) {
 		j = time_object.array[i]/time_unit - 1;
-		m[j][1] = m[j][1] + stat_object.array[i];
+		m[j][1] = stat_object.array[i];
 	}
 
 	fprintf(output, "\"V1\",\"V2\"\n");

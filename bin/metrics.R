@@ -46,7 +46,10 @@ scaled_stat_per_time <- function(stat_object, time_object, makespan, time_unit){
   
   for(i in 1:length(stat_object)){
     k <- time_object[i]/time_unit
-    m[k,2] <- m[k,2] + stat_object[i]
+    # Not incremental
+    #if (i==1 || stat_object[i] == 0) m[k,2] <- stat_object[i] else m[k,2] <- stat_object[i] - stat_object[i-1]
+    # Incremental
+    if (i==1 || stat_object[i] == 0) m[k,2] <- stat_object[i] else m[k,2] <- stat_object[i]
   }
   
   return (m)

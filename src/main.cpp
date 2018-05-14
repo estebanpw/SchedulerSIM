@@ -65,7 +65,7 @@ int main(int argc, char ** av){
 
     cluster * system_cluster = new cluster(f_workload, sch);
     system_cluster->add_nodes_from_file(f_machine_conf);
-    system_cluster->boot_all_nodes();
+    //system_cluster->boot_all_nodes();
 
     signal(SIGINT, signal_handler);
     int done = 0;

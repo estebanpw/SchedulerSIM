@@ -83,3 +83,9 @@ typedef struct uint64_t_array {
     uint64_t i;
     uint64_t number_of_reallocs;
 } uint64_t_array;
+
+typedef struct double_array {
+    double *array;
+    uint64_t i;
+    uint64_t number_of_reallocs;
+} double_array;
