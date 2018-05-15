@@ -304,6 +304,9 @@ void scheduler_PRIORITY::deploy_jobs(uint64_t t){
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
                 break;
             }
+            else if(!(*it)->get_state()){
+                this->current_policy->want_node_on(*it); break;
+            }
         }
     }
 }
