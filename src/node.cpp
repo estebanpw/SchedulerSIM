@@ -27,6 +27,8 @@ node::node(uint64_t id_node, char * node_name, uint64_t n_cores, double memory, 
     this->how_the_scheduler_wants_it = false;
     this->time_online = 0;
     this->time_offline = 0;
+
+    this->max_wall_time_clock = 0;
 }
 
 std::queue<job *> * node::compute(uint64_t t){
@@ -57,7 +59,6 @@ std::queue<job *> * node::compute(uint64_t t){
                 job * job_state = (*it)->compute(t);
                 
                 if(job_state != NULL){
-                    
                     (*it)->decrease_load();
                     finished_jobs->push(job_state);
                     this->efficient_t_jobs--;
@@ -115,11 +116,12 @@ double node::get_node_MEM_load(){
     return 100.0 * (this->used_memory / this->total_memory);
 }
 
-void node::insert_job(job * j){
+void node::insert_job(job * j, uint64_t t){
     // assumed job fits
     std::sort(this->load_in_cores.begin(), this->load_in_cores.end(), core::compare_two_core_loads);
     this->used_memory += j->MEM_requested;
-    
+    if(this->max_wall_time_clock < j->get_wall_time_clock()) this->max_wall_time_clock = t + j->get_wall_time_clock();
+
     if(MULTITHREADING == false){
         for(uint64_t i=0; i<(uint64_t)j->CPU_requested; i++){
 
@@ -149,4 +151,15 @@ void node::insert_job(job * j){
         }
     }
 
+}
+
+// DEPRECATED - N Cores complexity
+uint64_t node::get_max_clock_remaining(){
+    uint64_t max_clocks = 0;
+
+    for(std::vector<core *>::iterator it = this->cores.begin() ; it != this->cores.end(); ++it){
+        if((*it)->get_max_clock_remaining() > max_clocks) max_clocks = (*it)->get_max_clock_remaining();
+    }
+
+    return max_clocks;
 }

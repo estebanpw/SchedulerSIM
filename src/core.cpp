@@ -4,12 +4,20 @@ core::core(){
     this->current_load = 0;
 }
 
+uint64_t core::get_max_clock_remaining(){
+    if(this->jobs.size() > 0){
+        job * j = this->jobs.front();
+        return j->wall_time_clocks;
+    } else {
+        return 0;
+    }
+}
+
 job * core::compute(uint64_t t){
     job * j = NULL;
     if(this->jobs.size() > 0){
         j = this->jobs.front();
         this->jobs.pop();
-
 
         if(j != NULL){
             // Perform computation

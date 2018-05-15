@@ -22,7 +22,7 @@ public:
     core();
     job * compute(uint64_t t);
     void insert_job(job * j);
-    
+    uint64_t get_max_clock_remaining();
     
     uint64_t get_core_load(){ return this->jobs.size(); }
     void increase_load(){ this->current_load++; }

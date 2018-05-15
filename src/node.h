@@ -42,6 +42,8 @@ private:
     std::vector<core *> cores;
     std::vector<jobs_per_core *> load_in_cores;
     
+    std::vector<job *> running_jobs;
+    uint64_t max_wall_time_clock;
 
     bool node_state;
     uint64_t delay_clocks;
@@ -70,8 +72,10 @@ public:
     uint64_t get_cost(){ return this->cost_per_second; }
     char * get_name(){ return node_name; }
 
-    void insert_job(job * j);
+    void insert_job(job * j, uint64_t t);
     uint64_t get_id(){ return this->id_node; }
+    uint64_t get_max_wall_time_clock(){ return this->max_wall_time_clock; }
+    uint64_t get_max_clock_remaining(); //DEPRECATED
 
     // For descending sort (more busy nodes first)
     static bool compare_two_node_loads(load_on_node * a, load_on_node * b){ return (a->at_node->efficient_get_node_CPU_load() > b->at_node->efficient_get_node_CPU_load()); }

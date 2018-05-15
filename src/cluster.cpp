@@ -25,6 +25,7 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
             last_job = pr.job_id;
         }
     }
+
     std::sort(this->input_jobs.begin(), this->input_jobs.end(), job::compare_jobs_order);
     
     this->t_jobs = this->input_jobs.size();
@@ -41,13 +42,10 @@ cluster::~cluster(){
 int cluster::compute(){
     // Perform actions
     
-    
     // Check if there is a job waiting
-
     job * current_job = NULL;
     uint64_t curr_clock = this->syscl->get_clock();
     uint64_t curr_time = this->syscl->get_time();
-    
 
     if(curr_clock % (QUANTUMS_IN_DAY) == 0 && curr_time > 0){
         LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
@@ -70,8 +68,6 @@ int cluster::compute(){
         current_job = this->input_jobs.front();
         // If a job enters the system, submit it to the waiting queue
         while(current_job != NULL && current_job->get_submit_time() <= this->syscl->get_time() && this->input_jobs.size() > 0){
-
-
             // Schedule it insert to job queue
             //this->broadcast(2, "job enter ", current_job->to_string().c_str());
             // Current mode is just FIFO
@@ -101,13 +97,11 @@ int cluster::compute(){
         
         // Power off/on nodes as requested 
         if((*it)->can_I_use_it(curr_clock) && (*it)->get_state() == true && (*it)->how_the_scheduler_wants_it == false && this->sch->get_queued_jobs_size() == 0){
-            //std::cout << std::boolalpha;
-            //std::cout << "Node off - MEM: " << (*it)->get_node_MEM_load() << " | CPU: " <<  (*it)->efficient_get_node_CPU_load() << " | HSWI: " << (*it)->how_the_scheduler_wants_it <<  " | STATE: " << (*it)->get_state() << " | Busy: " << !((*it)->is_system_busy() <= curr_clock) << "\n";
             // Turn off 
-            (*it)->turn_off(curr_clock); this->broadcast(1, "!## --- TURNING OFF NODE");
+            (*it)->turn_off(curr_clock);
             this->nodes_online--;
         }else if(!(*it)->can_I_use_it(curr_clock) && (*it)->get_state() == false && (*it)->how_the_scheduler_wants_it == true){
-            (*it)->turn_on(curr_clock);  this->broadcast(1, "### --- TURNING ON NODE");
+            (*it)->turn_on(curr_clock);
             this->nodes_online++;
         }
 

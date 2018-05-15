@@ -82,23 +82,26 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
         std::vector<uint64_t> remove_jobs;
         uint64_t kill_id = 0;
         
-        for(std::vector<job *>::iterator jobit = this->jobs_queue->begin() ; jobit != this->jobs_queue->end(); ++jobit){
-            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-                if(job_fits_in_node(*jobit, *it, t)){
+        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+            for(std::vector<job *>::iterator jobit = this->jobs_queue->begin() ; jobit != this->jobs_queue->end(); ++jobit){
+                uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+
+                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock){
                     (*jobit)->state = 'R';
-                    (*it)->insert_job(*jobit);
+                    (*it)->insert_job(*jobit, t);
                     remove_jobs.push_back(kill_id);
-                    //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
                     (*jobit)->real_start_clocks = t;
                     LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
                     break;
-                }else{
-                    //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
                 }
+                
+                ++kill_id;
             }
-            ++kill_id;
         }
+
+        // Remove cleared list
         uint64_t amount_removed = 0;
+
         for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
             this->jobs_queue->erase(this->jobs_queue->begin()+(*rem_job) - amount_removed);
             amount_removed++;
@@ -110,7 +113,7 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
         for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
             if(job_fits_in_node(jobit, *it, t)){
                 jobit->state = 'R';
-                (*it)->insert_job(jobit);
+                (*it)->insert_job(jobit, t);
                 jobit->real_start_clocks = t;
                 this->jobs_queue->erase(this->jobs_queue->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
@@ -158,28 +161,30 @@ void scheduler_SHORT::deploy_jobs(uint64_t t){
     std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), node::compare_two_node_loads);
     
     if(BACKFILL == true){
-        
         std::vector<uint64_t> remove_jobs;
         uint64_t kill_id = 0;
         
-        for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
-            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-                if(job_fits_in_node(*jobit, *it, t)){
+        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+            for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
+                uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+
+                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock){
                     (*jobit)->state = 'R';
-                    (*it)->insert_job(*jobit);
+                    (*it)->insert_job(*jobit, t);
                     remove_jobs.push_back(kill_id);
-                    //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
                     (*jobit)->real_start_clocks = t;
                     LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
                     break;
-                }else{
-                    //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
                 }
+                
+                ++kill_id;
             }
-            ++kill_id;
         }
+
+        // Remove cleared list
         uint64_t amount_removed = 0;
         std::multiset<job *>:: iterator it;
+
         for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){   
             it = this->jobs_set->begin();
             std::advance(it, (*rem_job) - amount_removed);
@@ -194,7 +199,7 @@ void scheduler_SHORT::deploy_jobs(uint64_t t){
         for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
             if(job_fits_in_node(jobit, *it, t)){
                 jobit->state = 'R';
-                (*it)->insert_job(jobit);
+                (*it)->insert_job(jobit, t);
                 jobit->real_start_clocks = t;
                 this->jobs_set->erase(this->jobs_set->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());
@@ -262,28 +267,30 @@ void scheduler_PRIORITY::deploy_jobs(uint64_t t){
     std::sort(this->load_in_nodes.begin(), this->load_in_nodes.end(), node::compare_two_node_loads);
     
     if(BACKFILL == true){
-        
         std::vector<uint64_t> remove_jobs;
         uint64_t kill_id = 0;
         
-        for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
-            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-                if(job_fits_in_node(*jobit, *it, t)){
+        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+            for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
+                uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+
+                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock){
                     (*jobit)->state = 'R';
-                    (*it)->insert_job(*jobit);
+                    (*it)->insert_job(*jobit, t);
                     remove_jobs.push_back(kill_id);
-                    //printf("job was assigned to node! j=%" PRIu64 " to %s\n", (*jobit)->job_internal_identifier, (*it)->get_name());
                     (*jobit)->real_start_clocks = t;
                     LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
                     break;
-                }else{
-                    //printf("does not fit requires %le and %le %" PRIu64 "\n", (*jobit)->CPU_requested, (*jobit)->MEM_requested, (*jobit)->job_internal_identifier);
                 }
+                
+                ++kill_id;
             }
-            ++kill_id;
         }
+
+        // Remove cleared list
         uint64_t amount_removed = 0;
         std::multiset<job *>:: iterator it;
+
         for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){   
             it = this->jobs_set->begin();
             std::advance(it, (*rem_job) - amount_removed);
@@ -298,7 +305,7 @@ void scheduler_PRIORITY::deploy_jobs(uint64_t t){
         for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
             if(job_fits_in_node(jobit, *it, t)){
                 jobit->state = 'R';
-                (*it)->insert_job(jobit);
+                (*it)->insert_job(jobit, t);
                 jobit->real_start_clocks = t;
                 this->jobs_set->erase(this->jobs_set->begin());
                 LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size(), (jobit)->to_string().c_str());

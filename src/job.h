@@ -46,6 +46,9 @@ public:
     uint64_t get_remaining_quantums(){ return this->remaining_quantums; }
     void compute(){ this->remaining_quantums--; this->wall_time_clocks--; }
     uint64_t get_submit_time(){ return this->submit_time_seconds; }
+    uint64_t get_wall_time_clock(){ return this->wall_time_clocks; }
+    double get_cpu_requested(){ return this->CPU_requested; }
+    double get_mem_requested(){ return this->MEM_requested; }
     char * get_name(){ return this->job_name; }
     uint64_t get_job_id(){ return this->job_id; }
     static bool compare_jobs_order(job * a, job * b){ return (a->submit_time_seconds < b->submit_time_seconds); }
