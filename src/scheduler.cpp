@@ -82,30 +82,38 @@ void scheduler_FIFO::deploy_jobs(uint64_t t){
         std::vector<uint64_t> remove_jobs;
         uint64_t kill_id = 0;
         
-        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-            for(std::vector<job *>::iterator jobit = this->jobs_queue->begin() ; jobit != this->jobs_queue->end(); ++jobit){
-                uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+        for(std::vector<job *>::iterator jobit = this->jobs_queue->begin() ; jobit != this->jobs_queue->end(); ++jobit){
+            uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+            bool fit = false;
 
-                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock){
+            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock && fit == false){
                     (*jobit)->state = 'R';
                     (*it)->insert_job(*jobit, t);
                     remove_jobs.push_back(kill_id);
                     (*jobit)->real_start_clocks = t;
                     LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
+                    fit = true;
                     break;
                 }
-                
-                ++kill_id;
+                else if(!(*it)->get_state()){
+                    this->current_policy->want_node_on(*it); break;
+                }
             }
+
+            ++kill_id;
         }
 
         // Remove cleared list
         uint64_t amount_removed = 0;
 
-        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
-            this->jobs_queue->erase(this->jobs_queue->begin()+(*rem_job) - amount_removed);
-            amount_removed++;
-        }   
+        if(remove_jobs.size() > 0){
+            for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
+                //std::cout << "CURRENT REM_JOB: " << (*rem_job) << " - AMOUNT REMOVED: " << amount_removed << "\n";
+                this->jobs_queue->erase(this->jobs_queue->begin()+(*rem_job) - amount_removed);
+                amount_removed++;
+            }
+        }
     }else{
         // No backfill
         job * jobit = this->jobs_queue->front();
@@ -164,29 +172,35 @@ void scheduler_SHORT::deploy_jobs(uint64_t t){
         std::vector<uint64_t> remove_jobs;
         uint64_t kill_id = 0;
         
-        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-            for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
-                uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+        for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
+            uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+            bool fit = false;
 
-                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock){
+            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock && fit == false){
                     (*jobit)->state = 'R';
                     (*it)->insert_job(*jobit, t);
                     remove_jobs.push_back(kill_id);
                     (*jobit)->real_start_clocks = t;
                     LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
+                    fit=true;
                     break;
                 }
                 
-                ++kill_id;
+                else if(!(*it)->get_state()){
+                    this->current_policy->want_node_on(*it); break;
+                }
             }
+            ++kill_id;
         }
 
         // Remove cleared list
         uint64_t amount_removed = 0;
         std::multiset<job *>:: iterator it;
 
-        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){   
-            it = this->jobs_set->begin();
+        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
+            it = this->jobs_set->begin();// + (*rem_job) - amount_removed;
+            //std::cout << "CURRENT REM_JOB: " << (*rem_job) << " - AMOUNT REMOVED: " << amount_removed << "\n";
             std::advance(it, (*rem_job) - amount_removed);
             this->jobs_set->erase(it);
             amount_removed++;
@@ -270,34 +284,39 @@ void scheduler_PRIORITY::deploy_jobs(uint64_t t){
         std::vector<uint64_t> remove_jobs;
         uint64_t kill_id = 0;
         
-        for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
-            for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
-                uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+        for(std::multiset<job *>::iterator jobit = this->jobs_set->begin() ; jobit != this->jobs_set->end(); ++jobit){
+            uint64_t current_wall_time_clock = t + (*jobit)->get_wall_time_clock();
+            bool fit = false;
 
-                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock){
+            for(std::vector<node *>::iterator it = this->nodes->begin() ; it != this->nodes->end(); ++it){
+                if(job_fits_in_node(*jobit, *it, t) && (*it)->get_max_wall_time_clock() < current_wall_time_clock && fit == false){
                     (*jobit)->state = 'R';
                     (*it)->insert_job(*jobit, t);
                     remove_jobs.push_back(kill_id);
                     (*jobit)->real_start_clocks = t;
                     LOG->record(4, JOB_START, t * QUANTUMS_PER_SEC, this->get_queued_jobs_size() - remove_jobs.size(), (*jobit)->to_string().c_str());
+                    fit=true;
                     break;
                 }
                 
-                ++kill_id;
+                else if(!(*it)->get_state()){
+                    this->current_policy->want_node_on(*it); break;
+                }
             }
+            ++kill_id;
         }
 
         // Remove cleared list
         uint64_t amount_removed = 0;
         std::multiset<job *>:: iterator it;
 
-        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){   
-            it = this->jobs_set->begin();
+        for(std::vector<uint64_t>::iterator rem_job = remove_jobs.begin() ; rem_job != remove_jobs.end(); ++rem_job){
+            it = this->jobs_set->begin();// + (*rem_job) - amount_removed;
+            //std::cout << "CURRENT REM_JOB: " << (*rem_job) << " - AMOUNT REMOVED: " << amount_removed << "\n";
             std::advance(it, (*rem_job) - amount_removed);
             this->jobs_set->erase(it);
             amount_removed++;
         }
-        
     }else{
         // No backfill
                 

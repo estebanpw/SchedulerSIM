@@ -1,6 +1,6 @@
 CC=gcc
 CXX=g++
-CFLAGS=-O3 -std=c++11 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wall #-DVERBOSE
+CFLAGS=-g -O3 -std=c++11 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -Wall #-DVERBOSE
 BIN=../bin
 
 all: scheduler metrics

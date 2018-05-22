@@ -96,7 +96,7 @@ int cluster::compute(){
     for(std::vector<node *>::iterator it = this->nodes.begin() ; it != this->nodes.end(); ++it){
         
         // Power off/on nodes as requested 
-        if((*it)->can_I_use_it(curr_clock) && (*it)->get_state() == true && (*it)->how_the_scheduler_wants_it == false && this->sch->get_queued_jobs_size() == 0){
+        if((*it)->can_I_use_it(curr_clock) && (*it)->get_state() == true && (*it)->how_the_scheduler_wants_it == false && (*it)->get_efficient_t_jobs() == 0){
             // Turn off 
             (*it)->turn_off(curr_clock);
             this->nodes_online--;
@@ -124,7 +124,7 @@ int cluster::compute(){
                 LOG->record(8, JOB_FINISH, curr_time, this->sch->get_queued_jobs_size(), j->real_submit_clocks, j->real_start_clocks, j->real_end_clocks,
                 j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
                 LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
-                if(this->sch->get_queued_jobs_size() == 0 && this->sch->get_policy()->empty_queue_manager())
+                if((*it)->get_efficient_t_jobs() == 0 && this->sch->get_policy()->empty_queue_manager())
                     this->sch->get_policy()->want_node_off((*it));
                 //std::cout << "Node finished job - MEM: " << (*it)->get_node_MEM_load() << " | CPU: " <<  (*it)->efficient_get_node_CPU_load() << " | HSWI: " << (*it)->how_the_scheduler_wants_it <<  " | STATE: " << (*it)->get_state() << " | Busy: " << !((*it)->is_system_busy() < curr_clock) << "\n";
             }else if(js == JOB_ABORT){
