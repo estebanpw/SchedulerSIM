@@ -28,8 +28,9 @@ public:
     //policy(){ global_policy = this) };
     //virtual bool compare_node_load(load_on_node * a, load_on_node * b);
     virtual void manage_node_state(node * n, uint64_t t) = 0;
-    virtual bool empty_queue_manager() = 0; // False -> Maintain ON | True -> Turn OFF
+    virtual bool empty_queue_manager(std::vector<node *> * nodes, node * current_n) = 0; // False -> Maintain ON | True -> Turn OFF
     virtual fptr get_compare_func() = 0;
+    virtual bool turn_off_check(node * n, uint64_t curr_clock) = 0;
     void want_node_off(node * n) { n->how_the_scheduler_wants_it = false; }
     void want_node_on(node * n) { n->how_the_scheduler_wants_it = true; }
 
@@ -43,8 +44,9 @@ public:
     // policy_ALWAYS_ON():
     static bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n, uint64_t t);
-    bool empty_queue_manager();
+    bool empty_queue_manager(std::vector<node *> * nodes, node * current_n);
     fptr get_compare_func();
+    bool turn_off_check(node * n, uint64_t curr_clock);
 };
 
 // Basic Policy: All On
@@ -54,6 +56,23 @@ public:
     //policy_ON_WHEN_BUSY();
     static bool compare_node_load(load_on_node * a, load_on_node * b);
     void manage_node_state(node * n, uint64_t t);
-    bool empty_queue_manager();
+    bool empty_queue_manager(std::vector<node *> * nodes, node * current_n);
     fptr get_compare_func();
+    bool turn_off_check(node * n, uint64_t curr_clock);
+};
+
+// Policy: Static and Dynamic Nodes
+class policy_AUTO_SCALING : public policy
+{
+private:
+    std::vector<uint64_t> static_list;
+public:
+    policy_AUTO_SCALING(int n_static, const char * m_conf);
+    int is_node_static(node * n);
+    static bool compare_node_load(load_on_node * a, load_on_node * b);
+    void manage_node_state(node * n, uint64_t t);
+    bool empty_queue_manager(std::vector<node *> * nodes, node * current_n);
+    fptr get_compare_func();
+    bool turn_off_check(node * n, uint64_t curr_clock);
+
 };

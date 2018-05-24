@@ -40,6 +40,7 @@ void open_files(const char * m_conf, const char * workload, const char * log_out
 }
 
 int main(int argc, char ** av){
+    int extra_arg = 0;
 
     if(argc < 8) terror("Error, use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <policy> <scheduler-type>");
 
@@ -53,14 +54,21 @@ int main(int argc, char ** av){
     scheduler * sch = NULL;
 
     if(strcmp(av[6], "ALWAYS_ON") == 0) pol = new policy_ALWAYS_ON();
-    if(strcmp(av[6], "ON_WHEN_BUSY") == 0) pol = new policy_ON_WHEN_BUSY();
-
-    if(strcmp(av[7], "FIFO") == 0) sch = new scheduler_FIFO(pol);
-    if(strcmp(av[7], "SHORT") == 0) sch = new scheduler_SHORT(pol);
-    if(strcmp(av[7], "PRIO") == 0){
-        if(argc != 13) terror("   # For PRIOrity type use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <policy> <scheduler-type> <w> <q> <e> <c> <m> ");
-        sch = new scheduler_PRIORITY(pol, atof(av[8]), atof(av[9]), atof(av[10]), atof(av[11]), atof(av[12])); // w q e c m
+    else if(strcmp(av[6], "ON_WHEN_BUSY") == 0) pol = new policy_ON_WHEN_BUSY();
+    else if(strcmp(av[6], "AUTO_SCALING") == 0){
+        if(argc < 8) terror("   # For AUTO_SCALING policy use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <policy> <n_static> <scheduler-type>");
+        extra_arg++;
+        pol = new policy_AUTO_SCALING(atoi(av[7]), av[1]);
     }
+    else terror("   # Error, Invalid Policy. Use: ALWAYS_ON || ON_WHEN_BUSY || AUTO_SCALING");
+
+    if(strcmp(av[7 + extra_arg], "FIFO") == 0) sch = new scheduler_FIFO(pol);
+    else if(strcmp(av[7 + extra_arg], "SHORT") == 0) sch = new scheduler_SHORT(pol);
+    else if(strcmp(av[7 + extra_arg], "PRIO") == 0){
+        if(argc != (13 + extra_arg)) terror("   # For PRIOrity type use: ./schedulerSIM <machine-conf.csv> <workload.csv> <out.log> <backfill=TRUE/FALSE> <multithreading=TRUE/FALSE> <policy> <scheduler-type> <w> <q> <e> <c> <m> ");
+        sch = new scheduler_PRIORITY(pol, atof(av[8 + extra_arg]), atof(av[9 + extra_arg]), atof(av[10 + extra_arg]), atof(av[11 + extra_arg]), atof(av[12 + extra_arg])); // w q e c m
+    }
+    else terror("   # Error, Invalid Policy. Use: FIFO || SHORT || PRIO");
     
 
     cluster * system_cluster = new cluster(f_workload, sch);

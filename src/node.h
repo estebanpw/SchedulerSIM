@@ -58,7 +58,7 @@ public:
     void turn_on(uint64_t t){ this->node_state = true; this->delay_clocks = this->penalty_boot*QUANTUMS_PER_SEC + t; }
     void turn_off(uint64_t t){ this->node_state = false; this->delay_clocks = this->penalty_shutdown*QUANTUMS_PER_SEC + t; } // KILL signals should be distributed
 
-    void print_node(){ std::cout << "Node " << id_node << ":" << node_name << " [" << n_cores << "CPUs " << total_memory << "GB " << efficient_t_jobs << "Jobs" << "]" << std::endl; }
+    void print_node(){ std::cout << "Node ID: " << id_node << " - NAME: " << node_name << " - STATUS: " << node_state << " [" << n_cores << "CPUs " << total_memory << "GB " << efficient_t_jobs << "Jobs" << "]" << std::endl; }
     uint64_t get_time_online(){ return this->time_online; }
     uint64_t get_time_offline(){ return this->time_offline; }
     uint64_t get_efficient_t_jobs(){ return this->efficient_t_jobs; }
