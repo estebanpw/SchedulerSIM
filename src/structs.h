@@ -16,8 +16,8 @@
 #define DATA_LEN 100
 #define MACHINE_CONF_FIELDS 7
 
-#define INIT_YEAR 2016
-#define INIT_MONTH 10
+#define INIT_YEAR 2014
+#define INIT_MONTH 0
 #define INIT_DAY 1
 #define INIT_HOUR 0
 #define INIT_MINUTE 0

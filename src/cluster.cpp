@@ -22,7 +22,7 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
             pr.MEM_min_use, pr.MEM_average_use, pr.MEM_max_use, pr.MEM_requested, pr.run_time_seconds, pr.wall_time_seconds,
             pr.submit_time_seconds, pr.start_time_seconds, pr.end_time_seconds, pr.account_name, pr.job_name, pr.exit_code);
             if(last_job != pr.job_id) this->input_jobs.push_back(j);
-            last_job = pr.job_id;
+            last_job = pr.job_id;// if(tmp % 10 == 0) std::cout << "TMP = " << tmp << "\n"; tmp++;
         }
     }
 
