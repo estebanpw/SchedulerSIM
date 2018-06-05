@@ -41,6 +41,7 @@ int main(int argc, char ** argv){
 	uint64_t_array cpu_usage;
 	uint64_t_array mem_usage;
 	uint64_t_array nodes_usage;
+	uint64_t_array daily_time;
 	uint64_t_array cost_per_minute;
 	double_array diff_submit_start_jobs;
 
@@ -195,10 +196,10 @@ int main(int argc, char ** argv){
 						if (cost_per_minute.number_of_reallocs * ARRAY_SIZE == cost_per_minute.i) {
 							cost_per_minute.number_of_reallocs++;
 							cost_per_minute.array = (uint64_t*) realloc(cost_per_minute.array, 
-								ost_per_minute.number_of_reallocs * cost_per_minute * sizeof(uint64_t));
+								cost_per_minute.number_of_reallocs * ARRAY_SIZE * sizeof(uint64_t));
 							if (cost_per_minute.array == NULL) terror("Could not reallocate cost_per_minute array");
 							daily_time.array = (uint64_t*) realloc(daily_time.array, 
-								daily_time.number_of_reallocs * daily_time * sizeof(uint64_t));
+								cost_per_minute.number_of_reallocs * ARRAY_SIZE * sizeof(uint64_t));
 							if (daily_time.array == NULL) terror("Could not reallocate daily_time array");
 						}
 
@@ -215,7 +216,7 @@ int main(int argc, char ** argv){
 	fprintf(output, "%" PRIu64 ",", makespan);
 	fprintf(output, "%" PRIu64 ",", time_unit);
 	fprintf(output, "%c,", time_unit_symbol);
-	fprintf(output, "%" PRIu64 ",", jo1_finish_times.i);
+	fprintf(output, "%" PRIu64 ",", job_finish_times.i);
 	fprintf(output, "%" PRIu64 "\n", maxnodes);
 	fclose(output);
 
