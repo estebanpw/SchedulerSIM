@@ -41,6 +41,7 @@ int main(int argc, char ** argv){
 	uint64_t_array cpu_usage;
 	uint64_t_array mem_usage;
 	uint64_t_array nodes_usage;
+	uint64_t_array cost_per_minute;
 	double_array diff_submit_start_jobs;
 
 	job_finish_times.array 			= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
@@ -53,6 +54,8 @@ int main(int argc, char ** argv){
 	cpu_usage.array 				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
 	mem_usage.array 				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
 	nodes_usage.array 				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
+	daily_time.array				= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
+	cost_per_minute.array			= (uint64_t*) malloc(ARRAY_SIZE * sizeof(uint64_t));
 	diff_submit_start_jobs.array 	= (double*) malloc(ARRAY_SIZE * sizeof(double));
 
 	job_finish_times.i = 0;
@@ -66,6 +69,8 @@ int main(int argc, char ** argv){
 	mem_usage.i = 0;
 	nodes_usage.i = 0;
 	diff_submit_start_jobs.i = 0;
+	daily_time.i = 0;
+	cost_per_minute.i = 0;
 
 	job_finish_times.number_of_reallocs = 1;
 	diff_submit_start_jobs.number_of_reallocs = 1;
@@ -97,6 +102,12 @@ int main(int argc, char ** argv){
 	}
 	if (nodes_usage.array == NULL) {
 		terror("Could not allocate memory for nodes_usage array");
+	}
+	if (daily_time.array == NULL) {
+		terror("Could not allocate memory for daily_time array");
+	}
+	if (cost_per_minute.array == NULL) {
+		terror("Could not allocate memory for cost_per_minute array");
 	}
 	if (diff_submit_start_jobs.array == NULL) {
 		terror("Could not allocate memory for diff_submit_start_jobs array");
@@ -168,7 +179,7 @@ int main(int argc, char ** argv){
 					if (mem_usage.array == NULL) terror("Could not reallocate mem_usage array");
 					cost_per_second.array = (uint64_t*) realloc(cost_per_second.array, jobs_times.number_of_reallocs * ARRAY_SIZE * sizeof(uint64_t));
 					if (cost_per_second.array == NULL) terror("Could not reallocate cost_per_second array");
-				}
+				
 					sscanf(line_buffer, "%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 
 						"$%*[^$]$%"	PRIu64 "$%*[^s]s %" PRIu64 "/%" PRIu64 "%*[^d]d %" PRIu64 ".%*[^d]d %" PRIu64 
 						".%*[^/]/s %" PRIu64 "\n", 
@@ -177,6 +188,23 @@ int main(int argc, char ** argv){
 						&aborted_jobs.array[aborted_jobs.i++], &nodes_usage.array[nodes_usage.i++],
 						&maxnodes, &cpu_usage.array[cpu_usage.i++], &mem_usage.array[mem_usage.i++],
 						&cost_per_second.array[cost_per_second.i++]);
+					}
+				} else {
+					header_buffer[DISPLAY_COST_LENGTH] = '\0';
+					if(!strcmp(header_buffer, "[COST]")){
+						if (cost_per_minute.number_of_reallocs * ARRAY_SIZE == cost_per_minute.i) {
+							cost_per_minute.number_of_reallocs++;
+							cost_per_minute.array = (uint64_t*) realloc(cost_per_minute.array, 
+								ost_per_minute.number_of_reallocs * cost_per_minute * sizeof(uint64_t));
+							if (cost_per_minute.array == NULL) terror("Could not reallocate cost_per_minute array");
+							daily_time.array = (uint64_t*) realloc(daily_time.array, 
+								daily_time.number_of_reallocs * daily_time * sizeof(uint64_t));
+							if (daily_time.array == NULL) terror("Could not reallocate daily_time array");
+						}
+
+						sscanf(line_buffer, "%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 "$\n",
+							&daily_time.array[daily_time.i++], &cost_per_minute.array[cost_per_minute.i++]);
+					}
 				}
 			}
 		}
@@ -187,7 +215,7 @@ int main(int argc, char ** argv){
 	fprintf(output, "%" PRIu64 ",", makespan);
 	fprintf(output, "%" PRIu64 ",", time_unit);
 	fprintf(output, "%c,", time_unit_symbol);
-	fprintf(output, "%" PRIu64 ",", job_finish_times.i);
+	fprintf(output, "%" PRIu64 ",", jo1_finish_times.i);
 	fprintf(output, "%" PRIu64 "\n", maxnodes);
 	fclose(output);
 
@@ -213,7 +241,9 @@ int main(int argc, char ** argv){
 	fprintf(output, "\n");
 	fclose(output);
 
-	fill_scaled_stat_per_time(cost_per_second, jobs_times, makespan, time_unit, strcat(strcpy(aux, output_namefile), "_m_cost"));
+	fill_scaled_stat_per_time(cost_per_minute, daily_time, makespan, time_unit, strcat(strcpy(aux, output_namefile), "_m_cost"));
+	free(cost_per_minute.array);
+	free(daily_time.array);
 	free(cost_per_second.array);
 	scaled_stat_per_time(queued_jobs, jobs_times, makespan, time_unit, strcat(strcpy(aux, output_namefile), "_m_queued"));
 	free(queued_jobs.array);

@@ -8,6 +8,7 @@ cluster::cluster(FILE * f_input_jobs, scheduler * sch){
     this->t_total = 0;
     this->t_finished = 0;
     this->t_aborted = 0;
+    this->curr_cost = 0;
 
 
     Picasso_row pr;
@@ -47,9 +48,20 @@ int cluster::compute(){
     uint64_t curr_clock = this->syscl->get_clock();
     uint64_t curr_time = this->syscl->get_time();
 
+    // Cost log - calculate every minute - print daily
+    if(curr_clock % QUANTUMS_IN_MINUTE == 0 && curr_time > 0){
+        for(std::vector<node *>::iterator it = this->nodes.begin() ; it != this->nodes.end(); ++it){
+            if((*it)->get_state() || (*it)->is_system_busy() > this->syscl->get_clock()){
+                this->curr_cost += (*it)->get_cost()*60;
+            }
+        }
+    }
+
+    // Day log
     if(curr_clock % (QUANTUMS_IN_DAY) == 0 && curr_time > 0){
         LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
         LOG->record(2, DISPLAY_DATE, curr_time);
+        LOG->record(3, DISPLAY_COST, curr_time, this->curr_cost); this->curr_cost = 0;
         
         uint64_t counter = 0;
         for(uint64_t i=0; i<this->t_jobs; i++){
@@ -99,9 +111,12 @@ int cluster::compute(){
             // Turn off 
             (*it)->turn_off(curr_clock); //
             this->nodes_online--;// std::cout << "TURN OFF NODE - " << (*it)->get_id() << "\n";
+            LOG->record(4, NODE_OFF, this->syscl->get_time(), "Attempting to shutdown ", (*it)->get_name());
+
         }else if(!(*it)->can_I_use_it(curr_clock) && (*it)->get_state() == false && (*it)->how_the_scheduler_wants_it == true){
             (*it)->turn_on(curr_clock);
             this->nodes_online++;// std::cout << "TURN ON NODE - " << (*it)->get_id() << "\n";
+            LOG->record(4, NODE_ON, this->syscl->get_time(), "Attempting to boot ", (*it)->get_name());
         }
 
         // Actual computation
@@ -122,7 +137,7 @@ int cluster::compute(){
                 j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
                 LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
                 if((*it)->get_efficient_t_jobs() == 0 && this->sch->get_policy()->empty_queue_manager(&this->nodes, *it)){
-                    this->sch->get_policy()->want_node_off((*it));// std::cout << "EMPTY - TURN OFF NODE - " << (*it)->get_id() << "\n";//(*it)->turn_off(curr_clock);this->nodes_online--; std::cout << "TURN OFF NODE - " << (*it)->get_id() << "\n"; //this->sch->get_policy()->want_node_off((*it));
+                    this->sch->get_policy()->want_node_off((*it));
                 }
             }else if(js == JOB_ABORT){
                 (*it)->free_memory_from_process(j->MEM_requested);
@@ -132,7 +147,7 @@ int cluster::compute(){
                 j->to_string().c_str(), seconds_to_date_char((j->real_end_clocks - j->real_start_clocks) / QUANTUMS_PER_SEC).c_str());
                 LOG->record(7, SYS_USE, curr_time, this->sch->get_queued_jobs_size(), this->t_total, this->t_finished, this->t_aborted, this->print_cluster_usage().c_str());
                 if((*it)->get_efficient_t_jobs() == 0 && this->sch->get_policy()->empty_queue_manager(&this->nodes, *it)){
-                    this->sch->get_policy()->want_node_off((*it));// std::cout << "EMPTY - TURN OFF NODE - " << (*it)->get_id() << "\n";//this->sch->get_policy()->want_node_off((*it));this->nodes_online--; std::cout << "TURN OFF NODE - " << (*it)->get_id() << "\n";
+                    this->sch->get_policy()->want_node_off((*it));
                 }
             }
         }

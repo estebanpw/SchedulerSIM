@@ -25,6 +25,7 @@ private:
     uint64_t quantum;
     uint64_t nodes_online;
     sysclock * syscl;
+    uint64_t curr_cost;
 
     uint64_t t_total, t_finished, t_aborted;
 
