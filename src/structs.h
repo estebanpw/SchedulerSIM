@@ -18,11 +18,7 @@
 #define MACHINE_CONF_FIELDS 7
 
 #define INIT_YEAR 2014
-<<<<<<< HEAD
-#define INIT_MONTH 10
-=======
 #define INIT_MONTH 0
->>>>>>> 2cac8c5bad55819b79eb594598e7d51773723c5b
 #define INIT_DAY 1
 #define INIT_HOUR 0
 #define INIT_MINUTE 0

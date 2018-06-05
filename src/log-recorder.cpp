@@ -84,7 +84,6 @@ void log_recorder::record(int count, ...){
         case DISPLAY_COST: {
             uint64_t t = va_arg(ap, uint64_t);
             fprintf(this->out_log, "[COST] (t=$%" PRIu64 "$) ", t);
-            std::string s = std::to_string(c);
             fprintf(this->out_log, "System daily cost was $%" PRIu64 "$ ", va_arg(ap, uint64_t));
         }
         break;

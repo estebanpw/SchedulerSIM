@@ -106,16 +106,15 @@ int cluster::compute(){
     // Compute quantums
     for(std::vector<node *>::iterator it = this->nodes.begin() ; it != this->nodes.end(); ++it){
         // Power off/on nodes as requested 
-        //if((*it)->can_I_use_it(curr_clock) && (*it)->get_state() == true && (*it)->how_the_scheduler_wants_it == false && (*it)->get_efficient_t_jobs() == 0){
         if(this->sch->get_policy()->turn_off_check(*it, curr_clock)){ 
             // Turn off 
-            (*it)->turn_off(curr_clock); //
-            this->nodes_online--;// std::cout << "TURN OFF NODE - " << (*it)->get_id() << "\n";
+            (*it)->turn_off(curr_clock);
+            this->nodes_online--;
             LOG->record(4, NODE_OFF, this->syscl->get_time(), "Attempting to shutdown ", (*it)->get_name());
 
         }else if(!(*it)->can_I_use_it(curr_clock) && (*it)->get_state() == false && (*it)->how_the_scheduler_wants_it == true){
             (*it)->turn_on(curr_clock);
-            this->nodes_online++;// std::cout << "TURN ON NODE - " << (*it)->get_id() << "\n";
+            this->nodes_online++;
             LOG->record(4, NODE_ON, this->syscl->get_time(), "Attempting to boot ", (*it)->get_name());
         }
 
