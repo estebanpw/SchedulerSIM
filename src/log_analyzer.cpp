@@ -180,7 +180,7 @@ int main(int argc, char ** argv){
 					if (mem_usage.array == NULL) terror("Could not reallocate mem_usage array");
 					cost_per_second.array = (uint64_t*) realloc(cost_per_second.array, jobs_times.number_of_reallocs * ARRAY_SIZE * sizeof(uint64_t));
 					if (cost_per_second.array == NULL) terror("Could not reallocate cost_per_second array");
-				
+					}
 					sscanf(line_buffer, "%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 "$%*[^$]$%" PRIu64 
 						"$%*[^$]$%"	PRIu64 "$%*[^s]s %" PRIu64 "/%" PRIu64 "%*[^d]d %" PRIu64 ".%*[^d]d %" PRIu64 
 						".%*[^/]/s %" PRIu64 "\n", 
@@ -189,7 +189,7 @@ int main(int argc, char ** argv){
 						&aborted_jobs.array[aborted_jobs.i++], &nodes_usage.array[nodes_usage.i++],
 						&maxnodes, &cpu_usage.array[cpu_usage.i++], &mem_usage.array[mem_usage.i++],
 						&cost_per_second.array[cost_per_second.i++]);
-					}
+					
 				} else {
 					header_buffer[DISPLAY_COST_LENGTH] = '\0';
 					if(!strcmp(header_buffer, "[COST]")){

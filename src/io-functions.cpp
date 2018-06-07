@@ -92,7 +92,7 @@ int picasso_read_row(FILE * f_in, Picasso_row * pr){
     pr->submit_time_seconds = normalize_date(submittime_aux, &zero);
     pr->start_time_seconds = normalize_date(starttime_aux, &zero);
     pr->end_time_seconds = normalize_date(endtime_aux, &zero);
-    pr->run_time_seconds = pr->end_time_seconds - pr->start_time_seconds;
+    pr->run_time_seconds = walltime_to_seconds(runtime_aux);//pr->end_time_seconds - pr->start_time_seconds;
 
     /*
     if(pr->run_time_seconds > (uint64_t) 18146744073709551615){
