@@ -251,8 +251,7 @@ void scheduler_PRIORITY::pop_next_job(){
 }
 
 double scheduler_PRIORITY::compute_priority(job * j, uint64_t t){
-    
-    return (this->w * j->wall_time_clocks + this->q * (t - j->real_submit_clocks) + this->e * ((t - j->real_submit_clocks)/j->wall_time_clocks) + this->c * j->CPU_requested + this->m * j->MEM_requested);    
+    return (this->w * (j->wall_time_clocks/3600) + this->q * (t - j->real_submit_clocks) + this->e * ((t - j->real_submit_clocks)/j->wall_time_clocks) + this->c * j->CPU_requested + this->m * j->MEM_requested);    
 }
 
 void scheduler_PRIORITY::queue_job(job * j, uint64_t t){

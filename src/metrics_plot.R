@@ -52,7 +52,7 @@ pdf(paste(args[13], sep=""))
 
 # Plot general information
 
-info_table <- matrix(c(sum(as.numeric(m_cost[,2])), makespan, round(makespan / time_unit, digits=ndigits), round(job_finish_times_length/(makespan/(time_unit)), digits=ndigits), round(sd(queued_jobs), digits=ndigits), round(mean(queued_jobs), digits=ndigits), round(median(queued_jobs), digits=ndigits)), ncol=1, byrow=TRUE)
+info_table <- matrix(c(formatC(sum(as.numeric(m_cost[,2])), format="e", digits=5), makespan, round(makespan / time_unit, digits=ndigits), round(job_finish_times_length/(makespan/(time_unit)), digits=ndigits), round(sd(queued_jobs), digits=ndigits), round(mean(queued_jobs), digits=ndigits), round(median(queued_jobs), digits=ndigits)), ncol=1, byrow=TRUE)
 
 colnames(info_table) <- c("Value")
 rownames(info_table) <- c("Total billing", "Makespan (s)", paste("Makespan (", paste(time_unit_symbol, "):")), paste("Average throughput ( jobs /", paste(time_unit_symbol, "): ")), "Standard deviation of queue time (s):", "Average queue time (s):", "Median queue time (s):")
@@ -60,7 +60,7 @@ rownames(info_table) <- c("Total billing", "Makespan (s)", paste("Makespan (", p
 grid.table(as.table(info_table))
 
 # Fix m_cost
-print(paste("Total billing:", paste(sum(as.numeric(m_cost[,2])), "monetary units")))
+print(paste("Total billing:", paste(formatC(sum(as.numeric(m_cost[,2])), format="e", digits=5), "monetary units")))
 print(paste("Makespan ( s ):", makespan))
 print(paste("Makespan (", paste(time_unit_symbol, paste("):", makespan / time_unit))))
 print(paste("Average throughput ( jobs /", paste(time_unit_symbol, paste("): ", job_finish_times_length/(makespan/(time_unit))))))
@@ -88,11 +88,10 @@ lines(m_aborted[,1], m_aborted[,2], col = "green")
 
 # Plot queue time histogram
 #diff_submit_start_jobs2 <- as.numeric(scan(file=path_diff_submit_start_jobs, sep=","))
-hist(log(diff_submit_start_jobs), main = "Histogram of queueing time (m)", xlab = "Minutes spent in queue (log10)", breaks = 50)
-#plot(diff_submit_start_jobs, log="x", type="h", main = "Histogram of queueing time (m)", xlab = "Minutes spent in queue")
+hist(log10(diff_submit_start_jobs), main = "Histogram of queueing time (m)", xlab = "Minutes spent in queue (log10)", ylab="Frequency", breaks = 30)
 
 # Plot cost per second
-plot(m_cost[,1], m_cost[,2], type = "l", main = paste("Cost throughout time ( c /", paste(time_unit_symbol, ")")),
+plot(m_cost[,1], m_cost[,2], type = "l", main = paste("Cost throughout time ( c /", paste(time_unit_symbol, ")")), ylim=c(0, 1296000000),
      xlab = paste("Time unit (", paste(time_unit_symbol, ")", sep = ""), sep = ""),
      ylab = "Cost in monetary units")
 
