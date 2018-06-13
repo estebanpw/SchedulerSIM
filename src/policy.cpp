@@ -144,7 +144,7 @@ bool policy_AUTO_SCALING::empty_queue_manager(std::vector<node *> * nodes, node 
         else // Keep on
             return false;
     } else
-        return false;
+        return true;
 }
 
 fptr policy_AUTO_SCALING::get_compare_func(){
@@ -152,5 +152,5 @@ fptr policy_AUTO_SCALING::get_compare_func(){
 }
 
 bool policy_AUTO_SCALING::turn_off_check(node * n, uint64_t curr_clock){
-    return (this->is_node_static(n) == -1 && n->get_state() == true && n->how_the_scheduler_wants_it == false && n->get_efficient_t_jobs() == 0);
+    return (this->is_node_static(n) == -1 && n->can_I_use_it(curr_clock) && n->get_state() == true && n->how_the_scheduler_wants_it == false && n->get_efficient_t_jobs() == 0);
 }
